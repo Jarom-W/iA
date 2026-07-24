@@ -1,4 +1,4 @@
-import { ArrowUpRight } from "lucide-react";
+import { GitHubIcon, LinkedInIcon } from "./SocialIcons";
 
 export default function Footer() {
   return (
@@ -17,14 +17,26 @@ export default function Footer() {
           <a href="#about">About</a>
           <a href="#contact">Contact</a>
         </nav>
-        <a
-          href="https://www.linkedin.com/in/jarom-wardwell-9b8121214"
-          target="_blank"
-          rel="noreferrer"
-          className="linkedin-link"
-        >
-          LinkedIn <ArrowUpRight size={16} />
-        </a>
+        <div className="footer-socials" aria-label="Connect with Jarom Wardwell">
+          <a
+            href="https://www.linkedin.com/in/jarom-wardwell-9b8121214"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Connect with Jarom Wardwell on LinkedIn"
+            title="LinkedIn"
+          >
+            <LinkedInIcon size={19} />
+          </a>
+          <a
+            href="https://github.com/Jarom-W"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="View Jarom Wardwell on GitHub"
+            title="GitHub"
+          >
+            <GitHubIcon size={19} />
+          </a>
+        </div>
       </div>
       <div className="container footer-bottom">
         <span>© {new Date().getFullYear()} Inflection Architectures LLC</span>

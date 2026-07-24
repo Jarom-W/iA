@@ -1,6 +1,12 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { ArrowRight, CheckCircle2, Mail, MessageCircle } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Mail,
+  MessageCircle,
+} from "lucide-react";
+import { GitHubIcon, LinkedInIcon } from "./SocialIcons";
 
 type FormStatus = "idle" | "sending" | "sent" | "error";
 
@@ -34,11 +40,33 @@ export default function Contact() {
     <>
       <section id="about" className="about-section">
         <div className="container about-layout">
-          <div className="founder-card" aria-hidden="true">
+          <div className="founder-card">
             <div className="founder-initials">JW</div>
-            <div>
-              <strong>Jarom Wardwell</strong>
-              <span>Founder &amp; engineer</span>
+            <div className="founder-details">
+              <div>
+                <strong>Jarom Wardwell</strong>
+                <span>Founder &amp; engineer</span>
+              </div>
+              <div className="founder-socials" aria-label="Jarom Wardwell on social media">
+                <a
+                  href="https://www.linkedin.com/in/jarom-wardwell-9b8121214"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Connect with Jarom Wardwell on LinkedIn"
+                  title="LinkedIn"
+                >
+                  <LinkedInIcon size={19} />
+                </a>
+                <a
+                  href="https://github.com/Jarom-W"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="View Jarom Wardwell on GitHub"
+                  title="GitHub"
+                >
+                  <GitHubIcon size={19} />
+                </a>
+              </div>
             </div>
           </div>
           <div className="about-copy">

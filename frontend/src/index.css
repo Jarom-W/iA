@@ -928,22 +928,57 @@ textarea:focus-visible {
   letter-spacing: -0.08em;
 }
 
-.founder-card > div:last-child {
+.founder-details {
   position: relative;
   z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.founder-details > div:first-child {
   display: flex;
   flex-direction: column;
 }
 
-.founder-card strong {
+.founder-details strong {
   color: var(--forest);
   font-size: 1.02rem;
 }
 
-.founder-card span {
+.founder-details span {
   margin-top: 5px;
   color: #567169;
   font-size: 0.82rem;
+}
+
+.founder-socials,
+.footer-socials {
+  display: flex;
+  gap: 9px;
+}
+
+.founder-socials a,
+.footer-socials a {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: transform 180ms ease, background-color 180ms ease, color 180ms ease;
+}
+
+.founder-socials a {
+  border: 1px solid rgba(23, 62, 56, 0.16);
+  background: rgba(255, 255, 255, 0.44);
+  color: var(--forest);
+}
+
+.founder-socials a:hover {
+  transform: translateY(-2px);
+  background: var(--white);
 }
 
 .about-copy h2 {
@@ -1228,14 +1263,16 @@ textarea:focus-visible {
   color: #aebdb8;
 }
 
-.linkedin-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: #d4dedb;
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-decoration: none;
+.footer-socials a {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: #c4d2cd;
+}
+
+.footer-socials a:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.11);
+  color: var(--white);
 }
 
 .footer-bottom {
