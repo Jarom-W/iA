@@ -22,7 +22,7 @@ npm run lint
 npm run deploy
 ```
 
-The site is configured for the `/iA/` GitHub Pages base path.
+The site is configured for the custom domain `https://inflectionarchitectures.com`.
 
 ## Contact form activation
 
