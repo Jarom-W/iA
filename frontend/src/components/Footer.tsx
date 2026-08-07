@@ -9,7 +9,7 @@ export default function Footer() {
             <span className="brand-mark" aria-hidden="true"><span /><span /></span>
             <span className="brand-name">Inflection <span>Architectures</span></span>
           </a>
-          <p>Practical AI. Clear guidance. More time for people.</p>
+          <p>Your business, your tools—made more capable.</p>
         </div>
         <nav aria-label="Footer navigation">
           <a href="#services">How I help</a>
@@ -40,7 +40,7 @@ export default function Footer() {
       </div>
       <div className="container footer-bottom">
         <span>© {new Date().getFullYear()} Inflection Architectures LLC</span>
-        <span>People-first technology</span>
+        <span>AI help without the technical headache</span>
       </div>
     </footer>
   );

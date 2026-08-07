@@ -3,18 +3,18 @@ import { ArrowRight } from "lucide-react";
 const steps = [
   {
     number: "1",
-    title: "We talk",
-    description: "You tell me what is taking too much time or getting in the way. I listen and ask questions.",
+    title: "Show me how work gets done",
+    description: "We talk through the tools you use, the questions you keep asking, and the tasks that drain your time. No preparation or technical vocabulary needed.",
   },
   {
     number: "2",
-    title: "I map a practical next step",
-    description: "You get a clear recommendation, including what it will take and what a useful result looks like.",
+    title: "I connect the useful pieces",
+    description: "I configure your AI, connect the right apps, and add custom software only where it makes the experience simpler or more capable.",
   },
   {
     number: "3",
-    title: "We build and improve",
-    description: "I create the solution, help your team use it, and refine it as we learn what works best.",
+    title: "We use it together",
+    description: "I walk you through real tasks, tune the setup to your business, and make sure it feels natural before I get out of your way.",
   },
 ];
 
@@ -24,8 +24,8 @@ export default function Process() {
       <div className="container">
         <div className="section-heading centered-heading">
           <p className="section-kicker">What to expect</p>
-          <h2>A clear path, without the jargon.</h2>
-          <p>You’ll always know what we’re doing, why it matters, and what comes next.</p>
+          <h2>From “Claude can write” to “Claude can help me run this.”</h2>
+          <p>The technology stays behind the scenes. You get a simple way to ask, understand, and act.</p>
         </div>
 
         <div className="process-grid">
@@ -42,10 +42,10 @@ export default function Process() {
         <div className="promise-card">
           <div className="promise-mark">IA</div>
           <div>
-            <strong>My promise: people stay at the center.</strong>
+            <strong>No platform to buy. No giant rebuild.</strong>
             <p>
-              The goal is not to replace the knowledge and judgment your team brings. It is
-              to remove the drag that keeps them from using those strengths.
+              Custom software is sometimes the glue, but it is never the thing I am trying to sell you.
+              The goal is to make the tools you already have understand more and ask less of you.
             </p>
           </div>
         </div>

@@ -4,26 +4,26 @@ const services = [
   {
     number: "01",
     icon: Compass,
-    title: "Find the right opportunity",
+    title: "Start with what you hate doing",
     description:
-      "Not every problem needs AI. I look at how work moves through your business and identify where a practical change will make the biggest difference.",
-    outcome: "A clear, prioritized plan",
+      "Show me the work that eats your time: chasing details, answering the same questions, writing follow-ups, or trying to understand what the numbers are saying.",
+    outcome: "A useful first target",
   },
   {
     number: "02",
     icon: Workflow,
-    title: "Build tools that save time",
+    title: "Connect AI to your business",
     description:
-      "I create simple systems that can organize information, prepare routine work, and connect the software your team already uses.",
-    outcome: "Less repetitive work",
+      "I configure tools like Claude and connect them to Shopify, email, documents, and other apps you already use, using trusted connectors wherever they fit.",
+    outcome: "Answers grounded in your real work",
   },
   {
     number: "03",
     icon: MessagesSquare,
-    title: "Help your people feel confident",
+    title: "Fill the gaps and make it yours",
     description:
-      "A useful tool only matters if people can use it. I explain everything clearly, train your team, and improve the system based on real feedback.",
-    outcome: "Support beyond launch day",
+      "When off-the-shelf connections are not enough, I can add custom connectors, memory, and business-specific instructions—then show you how to use it without the jargon.",
+    outcome: "A companion that knows your business",
   },
 ];
 
@@ -34,11 +34,11 @@ export default function Services() {
         <div className="section-heading split-heading">
           <div>
             <p className="section-kicker">How I help</p>
-            <h2>Start with the work—not the technology.</h2>
+            <h2>Make the AI you already have genuinely useful.</h2>
           </div>
           <p>
-            You do not need to know which AI tool to choose. Bring me the slow, frustrating,
-            or repetitive part of your day, and we’ll work forward from there.
+            This is not a software platform or a giant transformation project. It is practical,
+            one-on-one help setting up capable tools around the way your business actually works.
           </p>
         </div>
 

@@ -41,11 +41,15 @@ export default function Contact() {
       <section id="about" className="about-section">
         <div className="container about-layout">
           <div className="founder-card">
-            <div className="founder-initials">JW</div>
+            <img
+              className="founder-portrait"
+              src="/portrait.JPEG"
+              alt="Jarom Wardwell with his wife"
+            />
             <div className="founder-details">
               <div>
                 <strong>Jarom Wardwell</strong>
-                <span>Founder &amp; engineer</span>
+                <span>Founder &amp; AI integration consultant</span>
               </div>
               <div className="founder-socials" aria-label="Jarom Wardwell on social media">
                 <a
@@ -70,17 +74,18 @@ export default function Contact() {
             </div>
           </div>
           <div className="about-copy">
-            <p className="section-kicker">A partner who speaks human</p>
-            <h2>Thoughtful technology starts with understanding people.</h2>
+            <p className="section-kicker">A human on your side</p>
+            <h2>You should not need an engineering team to get real value from AI.</h2>
             <p>
-              I’m Jarom, founder of Inflection Architectures. I’m a software and platform
-              engineer who helps businesses turn powerful technology into simple, useful
-              tools. You’ll work directly with me—from our first conversation through launch.
+              I’m Jarom, founder of Inflection Architectures. I started this practice for
+              owners who can see that AI could help, but do not have the time—or desire—to
+              become technical experts. I bring an engineer’s ability to connect and customize
+              the tools, then make the experience feel like a conversation instead of a software project.
             </p>
             <div className="about-values">
-              <span><CheckCircle2 size={18} /> Direct, honest advice</span>
-              <span><CheckCircle2 size={18} /> Clear communication</span>
-              <span><CheckCircle2 size={18} /> Solutions built to last</span>
+              <span><CheckCircle2 size={18} /> You work directly with me</span>
+              <span><CheckCircle2 size={18} /> Plain-English setup and guidance</span>
+              <span><CheckCircle2 size={18} /> Built around your existing tools</span>
             </div>
           </div>
         </div>
@@ -90,10 +95,10 @@ export default function Contact() {
         <div className="container contact-layout">
           <div className="contact-copy">
             <div className="eyebrow dark-eyebrow"><MessageCircle size={15} /> Let’s talk</div>
-            <h2>What would make your workday easier?</h2>
+            <h2>Show me the work you hate.</h2>
             <p>
-              You do not need a polished plan. Tell me what feels slow, repetitive, or
-              frustrating, and I’ll help you think through a practical next step.
+              You do not need to know whether it needs an MCP, a custom connector, or anything
+              technical at all. Tell me what feels slow, repetitive, or impossible to see clearly.
             </p>
             <a href="mailto:jaromwardwell@gmail.com" className="email-link">
               <span><Mail size={20} /></span>
@@ -136,7 +141,7 @@ export default function Contact() {
                   <textarea
                     name="message"
                     rows={5}
-                    placeholder="A few sentences is plenty. What takes too much time today?"
+                    placeholder="A few sentences is plenty. What do you wish AI could take off your plate?"
                     required
                   />
                 </label>
