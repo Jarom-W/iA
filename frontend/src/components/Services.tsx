@@ -12,18 +12,18 @@ const services = [
   {
     number: "02",
     icon: Workflow,
-    title: "Connect AI to your business",
+    title: "Fit AI into your business",
     description:
-      "I configure tools like Claude and connect them to Shopify, email, documents, and other apps you already use, using trusted connectors wherever they fit.",
+      "I am not tied to one model or vendor. I configure the right AI tools to work with Shopify, email, documents, and the other apps you already use.",
     outcome: "Answers grounded in your real work",
   },
   {
     number: "03",
     icon: MessagesSquare,
-    title: "Fill the gaps and make it yours",
+    title: "Bring more capability to the table",
     description:
-      "When off-the-shelf connections are not enough, I can add custom connectors, memory, and business-specific instructions—then show you how to use it without the jargon.",
-    outcome: "A companion that knows your business",
+      "I have built private, off-market tools that can give AI better business context, useful memory, and a simpler way to work. I bring them in when they improve your experience.",
+    outcome: "A more capable, easier experience",
   },
 ];
 

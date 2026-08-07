@@ -9,7 +9,7 @@ export default function Footer() {
             <span className="brand-mark" aria-hidden="true"><span /><span /></span>
             <span className="brand-name">Inflection <span>Architectures</span></span>
           </a>
-          <p>Your business, your tools—made more capable.</p>
+          <p>Your business and your tools, made more capable.</p>
         </div>
         <nav aria-label="Footer navigation">
           <a href="#services">How I help</a>

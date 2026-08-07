@@ -12,9 +12,9 @@ export default function Hero() {
             You don’t need to understand AI, you just need it to do the work you <em>hate.</em>
           </h1>
           <p className="hero-lede">
-            I help small-business owners turn tools like Claude into a useful business
-            companion—connected to the apps, information, and day-to-day work that already
-            run their business.
+            I help small-business owners turn today’s AI tools into useful business
+            companions that work with the apps, information, and day-to-day routines
+            they already rely on.
           </p>
           <div className="hero-actions">
             <a href="#contact" className="button button-primary">
@@ -65,7 +65,7 @@ export default function Hero() {
       <div className="container trust-strip">
         <span>No new platform to learn</span>
         <span>Connected to your real business</span>
-        <span>Custom setup without the technical headache</span>
+        <span>Extra capability without the technical headache</span>
       </div>
     </section>
   );

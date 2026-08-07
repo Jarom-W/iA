@@ -78,9 +78,10 @@ export default function Contact() {
             <h2>You should not need an engineering team to get real value from AI.</h2>
             <p>
               I’m Jarom, founder of Inflection Architectures. I started this practice for
-              owners who can see that AI could help, but do not have the time—or desire—to
-              become technical experts. I bring an engineer’s ability to connect and customize
-              the tools, then make the experience feel like a conversation instead of a software project.
+              owners who can see that AI could help but have no desire to become technical
+              experts. I bring an engineer’s ability to configure the right tools, along with
+              private software I have already built to make AI easier and more useful inside
+              real business workflows.
             </p>
             <div className="about-values">
               <span><CheckCircle2 size={18} /> You work directly with me</span>
@@ -97,8 +98,8 @@ export default function Contact() {
             <div className="eyebrow dark-eyebrow"><MessageCircle size={15} /> Let’s talk</div>
             <h2>Show me the work you hate.</h2>
             <p>
-              You do not need to know whether it needs an MCP, a custom connector, or anything
-              technical at all. Tell me what feels slow, repetitive, or impossible to see clearly.
+              You do not need to choose a model, integration, or technical approach. Tell me
+              what feels slow, repetitive, or impossible to see clearly.
             </p>
             <a href="mailto:jaromwardwell@gmail.com" className="email-link">
               <span><Mail size={20} /></span>

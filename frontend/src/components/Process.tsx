@@ -8,8 +8,8 @@ const steps = [
   },
   {
     number: "2",
-    title: "I connect the useful pieces",
-    description: "I configure your AI, connect the right apps, and add custom software only where it makes the experience simpler or more capable.",
+    title: "I configure the useful pieces",
+    description: "I set up the right AI tools and available integrations around your workflow. When it helps, I layer in off-market tools I have already built to make the experience more capable and easier to use.",
   },
   {
     number: "3",
@@ -24,7 +24,7 @@ export default function Process() {
       <div className="container">
         <div className="section-heading centered-heading">
           <p className="section-kicker">What to expect</p>
-          <h2>From “Claude can write” to “Claude can help me run this.”</h2>
+          <h2>From “AI can write” to “AI can help me run this.”</h2>
           <p>The technology stays behind the scenes. You get a simple way to ask, understand, and act.</p>
         </div>
 
@@ -44,8 +44,9 @@ export default function Process() {
           <div>
             <strong>No platform to buy. No giant rebuild.</strong>
             <p>
-              Custom software is sometimes the glue, but it is never the thing I am trying to sell you.
-              The goal is to make the tools you already have understand more and ask less of you.
+              I am not here to pitch a software build. I bring proven tools I have already
+              developed when they make your AI more useful. The goal is a better workflow,
+              not another technology project to manage.
             </p>
           </div>
         </div>
