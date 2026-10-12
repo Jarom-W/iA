@@ -33,7 +33,7 @@ The contact form uses [FormSubmit](https://formsubmit.co/) to send inquiries to 
 - `src/content/site.ts`: verified business/contact details, hero copy, navigation, services, process examples, and FAQs.
 - `src/content/pricing.ts`: all public prices, included scope, exclusions, and recurring-service boundaries. Update this source to keep offers and the care FAQ consistent.
 - `src/components/`: focused homepage sections; supporting section copy lives with its component.
-- `src/utils/estimateImprovement.ts`: the actual calculation used by the illustrative estimate. Its source is also displayed in the code panel.
+- `src/utils/estimateImprovement.ts`: the actual calculation used by the illustrative estimate.
 - `public/banner.png` and `public/logo.png`: supplied branding and favicon.
 
 Preview the production build locally with `npm run build` followed by `npm run preview -- --host 127.0.0.1 --port 4173`. No deployment is needed.
@@ -45,3 +45,5 @@ Contact tests mock the existing FormSubmit endpoint. An accepted API response is
 The homepage is a short introduction. Navigation opens dedicated `/services/`, `/approach/`, `/pricing/`, `/about/`, and `/contact/` pages. Page compositions are maintained in `src/pages/`; shared sections remain in `src/components/`. Each page has its own HTML entry with a description and canonical URL, registered in `vite.config.ts`, so direct links and refreshes work on GitHub Pages without server rewrites.
 
 `src/main.tsx` forwards the previous homepage section links to their corresponding pages. Navigation links are maintained in `src/content/site.ts`.
+
+The Approach page uses an interactive cubic curve in `src/components/Process.tsx`. Its slope stays positive, eases before Implement, and steepens after Implement, the inflection point. Hover, touch, focus, and arrow keys select a step and its details. The calculator remains interactive without a public source-code panel.
