@@ -1,15 +1,13 @@
-name: Deploy protected Stasis downloads
+name: Deploy website
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
-  schedule:
-    - cron: "17 8 * * *"
 
 concurrency:
-  group: github-pages-stasis
+  group: github-pages
   cancel-in-progress: false
 
 permissions:
@@ -45,26 +43,6 @@ jobs:
       - name: Build website
         working-directory: frontend
         run: npm run build
-
-      - name: Fetch latest private Stasis release
-        env:
-          STASIS_RELEASES_TOKEN: ${{ secrets.STASIS_RELEASES_TOKEN }}
-          STASIS_RELEASE_REPOSITORY: ${{ vars.STASIS_RELEASE_REPOSITORY }}
-        run: node scripts/fetch-stasis-release.mjs --output "${RUNNER_TEMP}/stasis-release"
-
-      - name: Encrypt Stasis release for Pages
-        env:
-          STASIS_DOWNLOAD_PASSPHRASE: ${{ secrets.STASIS_DOWNLOAD_PASSPHRASE }}
-        run: >-
-          node scripts/encrypt-stasis-release.mjs
-          --source "${RUNNER_TEMP}/stasis-release"
-          --output frontend/dist/downloads/releases
-
-      - name: Check Pages artifact for plaintext and secrets
-        env:
-          STASIS_RELEASES_TOKEN: ${{ secrets.STASIS_RELEASES_TOKEN }}
-          STASIS_DOWNLOAD_PASSPHRASE: ${{ secrets.STASIS_DOWNLOAD_PASSPHRASE }}
-        run: node scripts/check-pages-artifact.mjs --directory frontend/dist
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
