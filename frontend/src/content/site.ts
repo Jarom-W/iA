@@ -13,6 +13,7 @@ export const business = {
 };
 
 export const navigation = [
+  { name: "Home", href: "/" },
   { name: "Services", href: "/services/" },
   { name: "Approach", href: "/approach/" },
   { name: "Pricing", href: "/pricing/" },
