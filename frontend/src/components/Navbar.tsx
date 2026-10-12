@@ -1,70 +1,68 @@
-import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { ArrowUpRight, Menu, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import Brand from "./Brand";
 
 const links = [
-  { name: "How I help", href: "#services" },
-  { name: "What to expect", href: "#process" },
-  { name: "About", href: "#about" },
+  { name: "Capabilities", href: "/#services" },
+  { name: "Approach", href: "/#process" },
+  { name: "About", href: "/#about" },
 ];
-
-function BrandMark() {
-  return (
-    <span className="brand-mark" aria-hidden="true">
-      <span />
-      <span />
-    </span>
-  );
-}
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const [compact, setCompact] = useState(() => window.scrollY > 64);
+  const menuButton = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const onScroll = () => setCompact(window.scrollY > 64);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        menuButton.current?.focus();
+      }
+    };
+    const desktop = window.matchMedia("(min-width: 1081px)");
+    const onResize = () => { if (desktop.matches) setOpen(false); };
+    window.addEventListener("keydown", onKeyDown);
+    desktop.addEventListener("change", onResize);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      desktop.removeEventListener("change", onResize);
+    };
+  }, [open]);
 
   return (
-    <header className="site-header">
+    <header className={`site-header${compact ? " is-compact" : ""}`}>
       <nav className="container nav-shell" aria-label="Main navigation">
-        <a href="#top" className="brand" aria-label="Inflection Architectures home">
-          <BrandMark />
-          <span className="brand-name">
-            Inflection <span>Architectures</span>
-          </span>
-        </a>
-
+        <Brand className="nav-brand" />
         <div className="desktop-nav">
-          {links.map((link) => (
-            <a key={link.name} href={link.href}>
-              {link.name}
-            </a>
-          ))}
-          <a href="#contact" className="button button-small button-dark">
-            Start a conversation
+          {links.map((link) => <a key={link.name} href={link.href}>{link.name}</a>)}
+          <a href="/#contact" className="button button-small button-outline">
+            Let’s talk <ArrowUpRight size={16} aria-hidden="true" />
           </a>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setOpen((value) => !value)}
-          className="menu-button"
-          aria-label={open ? "Close navigation" : "Open navigation"}
-          aria-expanded={open}
-        >
+        <button ref={menuButton} type="button" onClick={() => setOpen((value) => !value)}
+          className="menu-button" aria-label={open ? "Close navigation" : "Open navigation"}
+          aria-expanded={open} aria-controls="mobile-navigation">
           {open ? <X size={22} /> : <Menu size={22} />}
         </button>
       </nav>
-
-      {open && (
-        <div className="mobile-nav">
-          <div className="container">
-            {links.map((link) => (
-              <a key={link.name} href={link.href} onClick={() => setOpen(false)}>
-                {link.name}
-              </a>
-            ))}
-            <a href="#contact" onClick={() => setOpen(false)} className="button button-dark">
-              Start a conversation
-            </a>
-          </div>
+      <div id="mobile-navigation" className="mobile-nav" hidden={!open}>
+        <div className="container">
+          {links.map((link) => (
+            <a key={link.name} href={link.href} onClick={() => setOpen(false)}>{link.name}</a>
+          ))}
+          <a href="/#contact" onClick={() => setOpen(false)} className="button button-primary">
+            Let’s talk <ArrowUpRight size={17} aria-hidden="true" />
+          </a>
         </div>
-      )}
+      </div>
     </header>
   );
 }
