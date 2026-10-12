@@ -1,10 +1,15 @@
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import Services from "./components/Services";
-import Industries from "./components/Industries";
+import Problems from "./components/Problems";
+import ImprovementIllustration from "./components/ImprovementIllustration";
+import Pricing from "./components/Pricing";
+import About from "./components/About";
+import Faq from "./components/Faq";
 import Process from "./components/Process";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
+
 function App() {
   return (
     <>
@@ -13,9 +18,13 @@ function App() {
 
       <main id="main-content">
         <Hero />
+        <Problems />
         <Services />
-        <Industries />
         <Process />
+        <ImprovementIllustration />
+        <Pricing />
+        <About />
+        <Faq />
         <Contact />
       </main>
 
