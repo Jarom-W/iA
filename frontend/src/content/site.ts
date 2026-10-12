@@ -13,10 +13,10 @@ export const business = {
 };
 
 export const navigation = [
-  { name: "Services", href: "/#services" },
-  { name: "Approach", href: "/#process" },
-  { name: "Pricing", href: "/#pricing" },
-  { name: "About", href: "/#about" },
+  { name: "Services", href: "/services/" },
+  { name: "Approach", href: "/approach/" },
+  { name: "Pricing", href: "/pricing/" },
+  { name: "About", href: "/about/" },
 ];
 
 export const hero = {
@@ -63,14 +63,6 @@ export const processSteps = [
   { title: "Decide", description: "Compare process changes, existing tools, integrations, and custom work. Weigh the cost and fit of each." },
   { title: "Implement", description: "Agree on scope, deliver something usable, and test it with the people who will rely on it." },
   { title: "Improve", description: "Review what changed. Adjust the next priority and continue with scoped support when it is useful." },
-];
-
-export const workflow = [
-  { name: "Inquiry", issue: "Requests arrive through several channels, with no clear owner for the next step.", intervention: "Choose one place to record inquiries and assign follow-up. Connect the website form if it removes a real handoff." },
-  { name: "Estimate", issue: "Quotes depend on scattered notes, outdated prices, or information that was never collected.", intervention: "Agree on the required information and a repeatable estimate template. Evaluate your existing quoting tools before adding another." },
-  { name: "Job", issue: "The accepted estimate does not reliably become a scheduled job with a clear scope.", intervention: "Define the handoff: approved work, responsible person, schedule, and changes. Configure the tools the team can actually maintain." },
-  { name: "Invoice", issue: "Completed work waits to be invoiced because details or approvals are missing.", intervention: "Create a completion checklist and an agreed invoice trigger. Automate a draft where useful, with a person reviewing it." },
-  { name: "Payment", issue: "Open invoices are difficult to track, and follow-up is inconsistent.", intervention: "Use an agreed receivables view and follow-up process. Check whether the accounting software already supports the needed reminders." },
 ];
 
 export const workingPractices = [

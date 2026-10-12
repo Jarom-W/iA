@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { estimateImprovement } from "../utils/estimateImprovement";
 import type { ImprovementEstimate } from "../utils/estimateImprovement";
-import calculationSource from "../utils/estimateImprovement.ts?raw";
 import { usd } from "../content/pricing";
 
 const fields = [
@@ -10,13 +9,6 @@ const fields = [
   { key: "addedMonthlyCost", label: "Added monthly cost", unit: "USD / month" },
   { key: "setupCost", label: "One-time setup cost", unit: "USD" },
 ] as const;
-
-function highlight(line: string) {
-  return line.split(/(\/\/.*$|"[^"]*"|\b(?:export|type|function|const|return|if|throw|new|number|null)\b|\b\d+\b)/g).map((token, index) => {
-    const kind = token.startsWith("//") ? "comment" : token.startsWith('"') ? "string" : /^(export|type|function|const|return|if|throw|new)$/.test(token) ? "keyword" : /^(number|null|\d+)$/.test(token) ? "value" : "plain";
-    return <span className={`syntax-${kind}`} key={index}>{token}</span>;
-  });
-}
 
 export default function ImprovementIllustration() {
   const [values, setValues] = useState({ hoursSavedPerMonth: "8", valuePerHour: "50", addedMonthlyCost: "75", setupCost: "1500" });
@@ -39,8 +31,8 @@ export default function ImprovementIllustration() {
     <section className="section craft-section" aria-labelledby="craft-title">
       <div className="container">
         <div className="section-heading split-heading">
-          <div><p className="section-kicker">04 / The thinking behind the work</p><h2 id="craft-title">A useful improvement<br /><span>should make sense.</span></h2></div>
-          <p>Before building an automation, ask what it might be worth. A small, inspectable calculation can make assumptions visible—and a decision easier to discuss.</p>
+          <div><p className="section-kicker">The thinking behind the work</p><h2 id="craft-title">A useful improvement<br /><span>should make sense.</span></h2></div>
+          <p>Before building an automation, ask what it might be worth. A simple calculation can make assumptions visible—and a decision easier to discuss.</p>
         </div>
         <div className="estimate-shell">
           <div className="estimate-inputs">
@@ -67,11 +59,6 @@ export default function ImprovementIllustration() {
           </div>
         </div>
         <p className="estimate-caveat">A starting point, not a forecast or guarantee. This simple estimate excludes uncertainty around adoption, maintenance, and whether the freed time is productively used. Real decisions need the business context.</p>
-        <details className="calculation-details">
-          <summary><span>View the actual calculation</span><span className="small-label">TypeScript <span aria-hidden="true">+</span></span></summary>
-          <p className="code-explanation">This is the same function powering the estimate above. Positive monthly value supports a payback estimate; zero or negative value does not.</p>
-          <div className="code-panel" tabIndex={0} role="region" aria-label="TypeScript improvement estimate source code"><pre><code>{calculationSource.split("\n").map((line, index) => <span className="code-line" key={index}><span className="line-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span><span>{highlight(line)}{"\n"}</span></span>)}</code></pre></div>
-        </details>
       </div>
     </section>
   );

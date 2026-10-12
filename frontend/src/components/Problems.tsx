@@ -5,7 +5,7 @@ export default function Problems() {
     <section className="section problems-section" aria-labelledby="problems-title">
       <div className="container problems-layout">
         <div className="section-heading">
-          <p className="section-kicker">01 / Start with the business</p>
+          <p className="section-kicker">Start with the business</p>
           <h2 id="problems-title">Where is the business<br /><span>getting stuck?</span></h2>
           <p className="section-intro">Before choosing another tool, understand the current process and what it costs—in money, time, and attention.</p>
           <p className="audience-note">Built for established, owner-led service businesses. Especially teams of roughly 3–20 people quoting jobs, doing the work, and keeping customers moving.</p>

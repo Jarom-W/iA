@@ -69,14 +69,14 @@ export default function Contact() {
     <section id="contact" className="section contact-section" aria-labelledby="contact-title">
       <div className="container contact-layout">
         <div className="contact-copy">
-          <p className="section-kicker">08 / Start with a conversation</p>
-          <h2 id="contact-title">What would you like<br /><span>to work better?</span></h2>
+          <p className="section-kicker">Contact / Start with a conversation</p>
+          <h1 id="contact-title">What would you like<br /><span>to work better?</span></h1>
           <p>Tell me about your business and the problem on your mind. A website, a recurring bottleneck, a cost you want to understand, or a decision you need to make.</p>
           <p>We’ll start with a short fit conversation. Any assessment or project work is scoped and priced before it begins.</p>
           <a href={`mailto:${business.email}`} className="email-link"><span><Mail size={20} aria-hidden="true" /></span><span><small>Prefer email?</small><strong>{business.email}</strong></span></a>
         </div>
         <div className="form-card">
-          {status === "sent" ? <div className="success-message" role="status"><CheckCircle2 size={38} aria-hidden="true" /><h3 ref={successRef} tabIndex={-1}>Thanks for reaching out.</h3><p>Your inquiry was accepted. I’ll reply using the email you provided.</p><button type="button" className="text-link" onClick={() => { setStatus("idle"); window.requestAnimationFrame(() => formRef.current?.querySelector<HTMLInputElement>("#contact-name")?.focus()); }}>Send another message</button></div> : (
+          {status === "sent" ? <div className="success-message" role="status"><CheckCircle2 size={38} aria-hidden="true" /><h2 ref={successRef} tabIndex={-1}>Thanks for reaching out.</h2><p>Your inquiry was accepted. I’ll reply using the email you provided.</p><button type="button" className="text-link" onClick={() => { setStatus("idle"); window.requestAnimationFrame(() => formRef.current?.querySelector<HTMLInputElement>("#contact-name")?.focus()); }}>Send another message</button></div> : (
             <form ref={formRef} onSubmit={handleSubmit} noValidate aria-busy={status === "sending"}>
               <input type="hidden" name="_subject" value="New Inflection Architectures business inquiry" />
               <input type="hidden" name="_template" value="table" />

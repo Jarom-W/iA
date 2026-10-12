@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUpRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { business, hero } from "../content/site";
 
@@ -29,13 +29,13 @@ export default function Hero() {
     <section id="top" className="hero-section" aria-labelledby="hero-title">
       <ConstructionLines />
       <div className="container hero-layout">
-        <div className="hero-copy reveal">
+        <div className="hero-copy">
           <p className="eyebrow">{hero.category}</p>
           <h1 id="hero-title">{hero.headline[0]}<br /><span>{hero.headline[1]}</span></h1>
           <p className="hero-lede">{hero.description}</p>
           <div className="hero-actions">
-            <a href="#contact" className="button button-primary">{hero.primaryAction}<ArrowUpRight size={18} aria-hidden="true" /></a>
-            <a href="#services" className="text-link">{hero.secondaryAction}<ArrowDown size={16} aria-hidden="true" /></a>
+            <a href="/contact/" className="button button-primary">{hero.primaryAction}<ArrowUpRight size={18} aria-hidden="true" /></a>
+            <a href="/services/" className="text-link">{hero.secondaryAction}<ArrowRight size={16} aria-hidden="true" /></a>
           </div>
           <p className="hero-local">{business.localContext}</p>
         </div>
