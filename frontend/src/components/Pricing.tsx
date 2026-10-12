@@ -19,10 +19,9 @@ export default function Pricing() {
     <section id="pricing" className="section pricing-section" aria-labelledby="pricing-title">
       <div className="container">
         <div className="section-heading split-heading">
-          <div><p className="section-kicker">Pricing &amp; scope</p><h1 id="pricing-title">Clear starting points.<br /><span>Agreed boundaries.</span></h1></div>
-          <p>A short fit conversation helps us decide whether working together makes sense. A paid assessment or discovery is separate, with a defined deliverable and fee.</p>
+          <div><h1 id="pricing-title">Let's get started.<br /></h1></div>
         </div>
-        <div className="pricing-group-label"><h2>Projects</h2><span className="small-label">Launch pricing / USD</span></div>
+        <div className="pricing-group-label"><h2>Common Projects</h2></div>
         <div className="project-prices">
           {pricing.projects.map(project => <article className="project-price" key={project.id}>
             <div className="project-price-title"><h3>{project.name}</h3><p className="price-value">{project.amount === null ? <span className="scoped-price">Scoped after discovery</span> : <>{project.starting && <span>from </span>}{usd(project.amount)}</>}</p></div>

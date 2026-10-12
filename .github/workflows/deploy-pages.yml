@@ -1,0 +1,87 @@
+name: Deploy protected Stasis downloads
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: "17 8 * * *"
+
+concurrency:
+  group: github-pages-stasis
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out website
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Test
+        working-directory: frontend
+        run: npm test
+
+      - name: Build website
+        working-directory: frontend
+        run: npm run build
+
+      - name: Fetch latest private Stasis release
+        env:
+          STASIS_RELEASES_TOKEN: ${{ secrets.STASIS_RELEASES_TOKEN }}
+          STASIS_RELEASE_REPOSITORY: ${{ vars.STASIS_RELEASE_REPOSITORY }}
+        run: node scripts/fetch-stasis-release.mjs --output "${RUNNER_TEMP}/stasis-release"
+
+      - name: Encrypt Stasis release for Pages
+        env:
+          STASIS_DOWNLOAD_PASSPHRASE: ${{ secrets.STASIS_DOWNLOAD_PASSPHRASE }}
+        run: >-
+          node scripts/encrypt-stasis-release.mjs
+          --source "${RUNNER_TEMP}/stasis-release"
+          --output frontend/dist/downloads/releases
+
+      - name: Check Pages artifact for plaintext and secrets
+        env:
+          STASIS_RELEASES_TOKEN: ${{ secrets.STASIS_RELEASES_TOKEN }}
+          STASIS_DOWNLOAD_PASSPHRASE: ${{ secrets.STASIS_DOWNLOAD_PASSPHRASE }}
+        run: node scripts/check-pages-artifact.mjs --directory frontend/dist
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        with:
+          path: frontend/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

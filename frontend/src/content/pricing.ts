@@ -4,22 +4,30 @@ export const usd = (amount: number) => new Intl.NumberFormat("en-US", {
 
 export const pricing = {
   projects: [
+
+  {
+      id: "consultation", name: "Initial Consultation", amount: 0, starting: false,
+      summary: "Meet together and discuss your business. Where do you feel bottlenecks lie?",
+      includes: ["30 minute virtual session", "Documented discussion" ],
+      note: "I look forward to meeting you! Let's talk about where you believe your business is losing money, or where it could systematically improve.",
+      detail: "You'll receive an emailed report of our conversation as recorded by an Ai agent."
+  },
     {
-      id: "assessment", name: "Focused Business Assessment", amount: 650, starting: false,
+      id: "assessment", name: "Focused Business Assessment", amount: 250, starting: false,
       summary: "Get a clear recommendation on one defined business problem.",
       includes: ["Review of agreed information", "A working conversation", "A short written recommendation with priorities"],
       note: "A focused assessment, not a full business audit. Larger or messy engagements are scoped separately.",
       detail: "We agree on the question and information needed before starting. The deliverable is a practical recommendation for that question, with priorities and explicit assumptions.",
     },
     {
-      id: "website", name: "Marketing Website", amount: 1750, starting: true,
+      id: "website", name: "Marketing Website", amount: 500, starting: true,
       summary: "A clear, useful website that helps the right people take the next step.",
       includes: ["Up to five core pages, using an agreed layout and supplied business content", "Responsive implementation, an inquiry path, and foundational on-page search setup", "Two consolidated revision rounds within scope, plus launch handoff"],
       note: "Hosting and care are separate. No guaranteed rankings, traffic, or lead counts.",
       detail: "Copywriting, brand identity, ecommerce, complex booking, extensive migration, and custom integrations are separately scoped. Page count, content responsibilities, and supported features are agreed in writing.",
     },
     {
-      id: "sprint", name: "Implementation Sprint", amount: 1500, starting: true,
+      id: "sprint", name: "Implementation Sprint", amount: 1000, starting: true,
       summary: "Move one agreed improvement from a decision to something usable.",
       includes: ["Relevant planning and implementation", "Testing against the agreed outcome", "A documented handoff"],
       note: "A focused work window. Timing depends on scope and access; this is not a full-time developer week or an unlimited task list.",
@@ -33,16 +41,14 @@ export const pricing = {
       detail: "When uncertainty calls for paid technical discovery, we first agree on its deliverable: a feasibility review, options, key risks, and a proposed implementation scope. Discovery is used when needed, not required for every conversation.",
     },
   ],
-  technicalDiscovery: { name: "Paid technical discovery", amount: 1250 },
+  technicalDiscovery: { name: "Paid technical discovery", amount: 1000 },
   otherProjects: [
-    { name: "Single-page websites", amount: 950, qualifier: "from", note: "An agreed single-page scope." },
-    { name: "Supported simple website migrations", amount: 450, qualifier: "from", note: "After access and compatibility review." },
-    { name: "Expanded marketing websites", amount: 2750, qualifier: "typically scoped from", note: "Page count and features agreed in advance." },
-    { name: "Financial modeling or software selection", amount: 1250, qualifier: "from", note: "Depending on information quality and scope." },
+    { name: "Single-page websites", amount: 500, qualifier: "from", note: "An agreed single-page scope." },
+    { name: "Expanded marketing websites", amount: 1000, qualifier: "typically scoped from", note: "Page count and features agreed in advance." },
   ],
   websiteCare: [
     {
-      name: "Website Care", amount: 79,
+      name: "Website Care", amount: 50,
       summary: "Hosting and care for a supported simple marketing site.",
       includes: ["HTTPS, monitoring, and agreed form checks", "Routine upkeep and recovery support"],
       note: "Content changes are separate. Traffic, storage, and supported features are scoped; unusually demanding use is quoted separately.",
@@ -50,8 +56,8 @@ export const pricing = {
     {
       name: "Care & Updates", amount: 149,
       summary: "Website Care, with room for small content changes.",
-      includes: ["Everything in Website Care", "Up to 30 minutes of minor content changes per month", "A brief quarterly review"],
-      note: "Unused time does not roll over. Redesigns and new features are separate projects.",
+      includes: ["Everything in Website Care", "Up to 2 hours of minor content changes per month", "A brief quarterly review"],
+      note: "Unused time does not roll over. Redesigns and new features must remain within this time constraint otherwise, an additional engagement will be required.",
     },
   ],
   businessSupport: [
