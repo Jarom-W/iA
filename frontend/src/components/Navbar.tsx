@@ -2,11 +2,7 @@ import { ArrowUpRight, Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Brand from "./Brand";
 
-const links = [
-  { name: "Capabilities", href: "/#services" },
-  { name: "Approach", href: "/#process" },
-  { name: "About", href: "/#about" },
-];
+import { navigation as links } from "../content/site";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -44,7 +40,7 @@ export default function Navbar() {
         <div className="desktop-nav">
           {links.map((link) => <a key={link.name} href={link.href}>{link.name}</a>)}
           <a href="/#contact" className="button button-small button-outline">
-            Let’s talk <ArrowUpRight size={16} aria-hidden="true" />
+            Contact <ArrowUpRight size={16} aria-hidden="true" />
           </a>
         </div>
         <button ref={menuButton} type="button" onClick={() => setOpen((value) => !value)}
@@ -59,7 +55,7 @@ export default function Navbar() {
             <a key={link.name} href={link.href} onClick={() => setOpen(false)}>{link.name}</a>
           ))}
           <a href="/#contact" onClick={() => setOpen(false)} className="button button-primary">
-            Let’s talk <ArrowUpRight size={17} aria-hidden="true" />
+            Contact <ArrowUpRight size={17} aria-hidden="true" />
           </a>
         </div>
       </div>

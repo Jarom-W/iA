@@ -1,24 +1,38 @@
-const steps = [
-  { number: "01", title: "Understand.", detail: "Start with the problem, the people, and the tools you use. Define what success looks like and agree on a clear scope." },
-  { number: "02", title: "Build.", detail: "Turn the plan into working software. Review real progress together, test assumptions, and refine the details as we go." },
-  { number: "03", title: "Operate.", detail: "Get it into your hands and keep it running. Plan for deployment, maintenance, and the improvements that come next." },
-];
+import { useState } from "react";
+import type { KeyboardEvent } from "react";
+import { processSteps, workflow } from "../content/site";
 
 export default function Process() {
+  const [active, setActive] = useState(0);
+  function handleKey(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    const next = event.key === "ArrowRight" ? (index + 1) % workflow.length
+      : event.key === "ArrowLeft" ? (index + workflow.length - 1) % workflow.length
+      : event.key === "Home" ? 0 : event.key === "End" ? workflow.length - 1 : null;
+    if (next === null) return;
+    event.preventDefault();
+    setActive(next);
+    document.getElementById(`workflow-tab-${next}`)?.focus();
+  }
   return (
     <section id="process" className="section process-section" aria-labelledby="process-title">
       <div className="container">
         <div className="section-heading split-heading">
-          <div><p className="section-kicker">03 / The approach</p><h2 id="process-title">An idea is the start.<br /><span>Let’s see it through.</span></h2></div>
-          <p>A direct relationship with the person writing the code. Clear communication, deliberate decisions, and software you can put to work.</p>
+          <div><p className="section-kicker">03 / How we work</p><h2 id="process-title">Understand it.<br /><span>Then improve it.</span></h2></div>
+          <p>The answer might be a clearer process, a setting in software you already pay for, or something custom. We make that decision before committing to the build.</p>
         </div>
-        <div className="process-grid">
-          {steps.map((step) => (
-            <article className="process-step" key={step.number}>
-              <span className="step-number">{step.number}<span aria-hidden="true"> /</span></span>
-              <h3>{step.title}</h3><p>{step.detail}</p>
-            </article>
-          ))}
+        <ol className="process-grid">
+          {processSteps.map((step, index) => <li className="process-step" key={step.title}><span className="step-number">0{index + 1} /</span><h3>{step.title}</h3><p>{step.description}</p></li>)}
+        </ol>
+        <div className="workflow-example">
+          <div className="workflow-heading"><div><p className="small-label">Illustrative workflow / A service business</p><h3>Look between the steps.</h3></div><p>Select a stage to explore a possible issue and intervention.</p></div>
+          <div className="workflow-tabs" role="tablist" aria-label="Example service business workflow">
+            {workflow.map((stage, index) => <button type="button" role="tab" key={stage.name} id={`workflow-tab-${index}`} aria-selected={active === index} aria-controls="workflow-panel" tabIndex={active === index ? 0 : -1} onClick={() => setActive(index)} onKeyDown={event => handleKey(event, index)}><span aria-hidden="true">0{index + 1}</span>{stage.name}</button>)}
+          </div>
+          <div className="workflow-panel" id="workflow-panel" role="tabpanel" aria-labelledby={`workflow-tab-${active}`} tabIndex={0}>
+            <div><p className="small-label">What can get stuck</p><p>{workflow[active].issue}</p></div>
+            <div><p className="small-label">A possible improvement</p><p>{workflow[active].intervention}</p></div>
+          </div>
+          <p className="example-footnote">An example to think with, not a report of client performance. The right intervention depends on the actual business.</p>
         </div>
       </div>
     </section>
