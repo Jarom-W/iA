@@ -4,7 +4,6 @@ import {
   ArrowRight,
   CheckCircle2,
   Mail,
-  MessageCircle,
 } from "lucide-react";
 import { GitHubIcon, LinkedInIcon } from "./SocialIcons";
 
@@ -38,18 +37,19 @@ export default function Contact() {
 
   return (
     <>
-      <section id="about" className="about-section">
+      <section id="about" className="section about-section" aria-labelledby="about-title">
         <div className="container about-layout">
           <div className="founder-card">
             <img
               className="founder-portrait"
               src="/portrait.JPEG"
               alt="Jarom Wardwell with his wife"
+              loading="lazy"
             />
             <div className="founder-details">
               <div>
                 <strong>Jarom Wardwell</strong>
-                <span>Founder &amp; AI integration consultant</span>
+                <span>Founder &amp; software engineer</span>
               </div>
               <div className="founder-socials" aria-label="Jarom Wardwell on social media">
                 <a
@@ -74,32 +74,32 @@ export default function Contact() {
             </div>
           </div>
           <div className="about-copy">
-            <p className="section-kicker">A human on your side</p>
-            <h2>You should not need an engineering team to get real value from AI.</h2>
+            <p className="section-kicker">04 / The person behind the code</p>
+            <h2 id="about-title">Hi, I’m Jarom.<br /><span>I build things that work.</span></h2>
             <p>
-              I’m Jarom, founder of Inflection Architectures. I started this practice for
-              owners who can see that AI could help but have no desire to become technical
-              experts. I bring an engineer’s ability to configure the right tools, along with
-              private software I have already built to make AI easier and more useful inside
-              real business workflows.
+              I run Inflection Architectures, an independent software contracting company.
+              I work directly with people and businesses to turn a problem, a workflow,
+              or an idea into useful software.
             </p>
+            <p>From custom applications and AI integrations to the infrastructure behind them,
+              I care about the details that make a system useful long after it ships.</p>
             <div className="about-values">
-              <span><CheckCircle2 size={18} /> You work directly with me</span>
-              <span><CheckCircle2 size={18} /> Plain-English setup and guidance</span>
-              <span><CheckCircle2 size={18} /> Built around your existing tools</span>
+              <span><CheckCircle2 size={16} aria-hidden="true" /> You work directly with me</span>
+              <span><CheckCircle2 size={16} aria-hidden="true" /> Clear scope and honest communication</span>
+              <span><CheckCircle2 size={16} aria-hidden="true" /> A partner beyond the first release</span>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="contact" className="section contact-section">
+      <section id="contact" className="section contact-section" aria-labelledby="contact-title">
         <div className="container contact-layout">
           <div className="contact-copy">
-            <div className="eyebrow dark-eyebrow"><MessageCircle size={15} /> Let’s talk</div>
-            <h2>Show me the work you hate.</h2>
+            <p className="section-kicker">05 / Start a conversation</p>
+            <h2 id="contact-title">Something in mind?<br /><span>Let’s build it.</span></h2>
             <p>
-              You do not need to choose a model, integration, or technical approach. Tell me
-              what feels slow, repetitive, or impossible to see clearly.
+              An idea, a bottleneck, or a system that needs a better foundation.
+              Tell me what you’re working on. We’ll figure out the next step together.
             </p>
             <a href="mailto:jaromwardwell@gmail.com" className="email-link">
               <span><Mail size={20} /></span>
@@ -121,7 +121,7 @@ export default function Contact() {
               <form onSubmit={handleSubmit}>
                 <input type="hidden" name="_subject" value="New Inflection Architectures inquiry" />
                 <input type="hidden" name="_template" value="table" />
-                <input type="text" name="_honey" className="honeypot" tabIndex={-1} autoComplete="off" />
+                <input type="text" name="_honey" className="honeypot" tabIndex={-1} autoComplete="off" aria-hidden="true" />
 
                 <div className="field-row">
                   <label>
@@ -142,7 +142,7 @@ export default function Contact() {
                   <textarea
                     name="message"
                     rows={5}
-                    placeholder="A few sentences is plenty. What do you wish AI could take off your plate?"
+                    placeholder="What would you like to build, improve, or get off your plate?"
                     required
                   />
                 </label>
