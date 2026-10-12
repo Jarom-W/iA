@@ -5,6 +5,7 @@ import Brand from "./Brand";
 import { navigation as links } from "../content/site";
 
 export default function Navbar() {
+  const currentPath = window.location.pathname.replace(/\/index\.html$/, "/").replace(/\/?$/, "/");
   const [open, setOpen] = useState(false);
   const [compact, setCompact] = useState(() => window.scrollY > 64);
   const menuButton = useRef<HTMLButtonElement>(null);
@@ -38,8 +39,8 @@ export default function Navbar() {
       <nav className="container nav-shell" aria-label="Main navigation">
         <Brand className="nav-brand" />
         <div className="desktop-nav">
-          {links.map((link) => <a key={link.name} href={link.href}>{link.name}</a>)}
-          <a href="/#contact" className="button button-small button-outline">
+          {links.map((link) => <a key={link.name} href={link.href} aria-current={currentPath === link.href ? "page" : undefined}>{link.name}</a>)}
+          <a href="/contact/" aria-current={currentPath === "/contact/" ? "page" : undefined} className="button button-small button-outline">
             Contact <ArrowUpRight size={16} aria-hidden="true" />
           </a>
         </div>
@@ -52,9 +53,9 @@ export default function Navbar() {
       <div id="mobile-navigation" className="mobile-nav" hidden={!open}>
         <div className="container">
           {links.map((link) => (
-            <a key={link.name} href={link.href} onClick={() => setOpen(false)}>{link.name}</a>
+            <a key={link.name} href={link.href} aria-current={currentPath === link.href ? "page" : undefined} onClick={() => setOpen(false)}>{link.name}</a>
           ))}
-          <a href="/#contact" onClick={() => setOpen(false)} className="button button-primary">
+          <a href="/contact/" aria-current={currentPath === "/contact/" ? "page" : undefined} onClick={() => setOpen(false)} className="button button-primary">
             Contact <ArrowUpRight size={17} aria-hidden="true" />
           </a>
         </div>

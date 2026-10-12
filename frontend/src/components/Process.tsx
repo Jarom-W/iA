@@ -17,14 +17,14 @@ export default function Process() {
     <section id="process" className="section process-section" aria-labelledby="process-title">
       <div className="container">
         <div className="section-heading split-heading">
-          <div><p className="section-kicker">03 / How we work</p><h2 id="process-title">Understand it.<br /><span>Then improve it.</span></h2></div>
+          <div><p className="section-kicker">Approach / How we work</p><h1 id="process-title">Understand it.<br /><span>Then improve it.</span></h1></div>
           <p>The answer might be a clearer process, a setting in software you already pay for, or something custom. We make that decision before committing to the build.</p>
         </div>
         <ol className="process-grid">
-          {processSteps.map((step, index) => <li className="process-step" key={step.title}><span className="step-number">0{index + 1} /</span><h3>{step.title}</h3><p>{step.description}</p></li>)}
+          {processSteps.map((step, index) => <li className="process-step" key={step.title}><span className="step-number">0{index + 1} /</span><h2>{step.title}</h2><p>{step.description}</p></li>)}
         </ol>
         <div className="workflow-example">
-          <div className="workflow-heading"><div><p className="small-label">Illustrative workflow / A service business</p><h3>Look between the steps.</h3></div><p>Select a stage to explore a possible issue and intervention.</p></div>
+          <div className="workflow-heading"><div><p className="small-label">Illustrative workflow / A service business</p><h2>Look between the steps.</h2></div><p>Select a stage to explore a possible issue and intervention.</p></div>
           <div className="workflow-tabs" role="tablist" aria-label="Example service business workflow">
             {workflow.map((stage, index) => <button type="button" role="tab" key={stage.name} id={`workflow-tab-${index}`} aria-selected={active === index} aria-controls="workflow-panel" tabIndex={active === index ? 0 : -1} onClick={() => setActive(index)} onKeyDown={event => handleKey(event, index)}><span aria-hidden="true">0{index + 1}</span>{stage.name}</button>)}
           </div>

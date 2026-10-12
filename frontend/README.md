@@ -39,3 +39,9 @@ The contact form uses [FormSubmit](https://formsubmit.co/) to send inquiries to 
 Preview the production build locally with `npm run build` followed by `npm run preview -- --host 127.0.0.1 --port 4173`. No deployment is needed.
 
 Contact tests mock the existing FormSubmit endpoint. An accepted API response is required before the site shows confirmation; tests do not establish real email delivery. Verify activation separately before relying on the form. The visible email link provides a direct alternative.
+
+## Page structure
+
+The homepage is a short introduction. Navigation opens dedicated `/services/`, `/approach/`, `/pricing/`, `/about/`, and `/contact/` pages. Page compositions are maintained in `src/pages/`; shared sections remain in `src/components/`. Each page has its own HTML entry with a description and canonical URL, registered in `vite.config.ts`, so direct links and refreshes work on GitHub Pages without server rewrites.
+
+`src/main.tsx` forwards the previous homepage section links to their corresponding pages. Navigation links are maintained in `src/content/site.ts`.

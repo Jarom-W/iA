@@ -13,10 +13,10 @@ export const business = {
 };
 
 export const navigation = [
-  { name: "Services", href: "/#services" },
-  { name: "Approach", href: "/#process" },
-  { name: "Pricing", href: "/#pricing" },
-  { name: "About", href: "/#about" },
+  { name: "Services", href: "/services/" },
+  { name: "Approach", href: "/approach/" },
+  { name: "Pricing", href: "/pricing/" },
+  { name: "About", href: "/about/" },
 ];
 
 export const hero = {
