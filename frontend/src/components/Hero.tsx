@@ -5,7 +5,6 @@ export default function Hero() {
     <section id="top" className="hero-section" aria-labelledby="hero-title">
       <div className="container hero-layout">
         <div className="hero-copy reveal">
-          <p className="eyebrow"><span className="status-dot" /> Independent software engineering</p>
           <h1 id="hero-title">Built for you.<br /><span>Built to run.</span></h1>
           <p className="hero-lede">
             Custom software for the way your business works.<br className="desktop-break" />{" "}
@@ -19,7 +18,6 @@ export default function Hero() {
         </div>
         <div className="hero-visual reveal reveal-delay" aria-hidden="true">
           <div className="blueprint-grid" />
-          <span className="blueprint-label blueprint-label-top">FIG. 01 / THE ARCHITECTURE</span>
           <span className="blueprint-cross cross-top">+</span>
           <img className="hero-mark" src="/logo.png" alt="" width="1254" height="1254" fetchPriority="high" />
           <span className="blueprint-cross cross-bottom">+</span>

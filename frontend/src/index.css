@@ -53,19 +53,18 @@ svg { flex-shrink: 0; }
 .mobile-nav .button { margin-top: 10px; }
 
 .hero-section { padding-top: 100px; }
-.hero-layout { display: grid; grid-template-columns: 1.22fr 1fr; min-height: 665px; align-items: center; gap: 28px; }
-.hero-copy { position: relative; z-index: 1; padding-block: 80px 88px; }
+.hero-layout { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+.hero-copy { position: relative; z-index: 1; width: 100%; max-width: 800px; padding-block: 80px 16px; }
 .eyebrow, .section-kicker { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; color: #a8a8a8; font-family: var(--mono); font-size: 10px; font-weight: 400; line-height: 1.6; letter-spacing: .12em; text-transform: uppercase; }
 .status-dot { display: block; width: 6px; height: 6px; border-radius: 50%; background: #e4e4e4; box-shadow: 0 0 0 4px #181818; }
 .hero-copy h1 { margin-bottom: 30px; font-size: clamp(64px, 6.8vw, 98px); font-weight: 450; letter-spacing: -.065em; line-height: 1.04; }
 .hero-copy h1 > span { color: #898989; }
-.hero-lede { max-width: 495px; margin-bottom: 34px; font-size: 16px; line-height: 1.8; }
-.hero-actions { display: flex; align-items: center; gap: 28px; }
-.hero-visual { position: relative; width: 100%; aspect-ratio: 1; isolation: isolate; }
+.hero-lede { max-width: 600px; margin-inline: auto; margin-bottom: 34px; font-size: 16px; line-height: 1.8; }
+.hero-actions { display: flex; align-items: center; justify-content: center; gap: 28px; }
+.hero-visual { position: relative; width: min(100%, 340px); margin-bottom: 36px; aspect-ratio: 1; isolation: isolate; }
 .blueprint-grid { position: absolute; inset: 0; background-image: linear-gradient(#1b1b1b 1px, transparent 1px), linear-gradient(90deg, #1b1b1b 1px, transparent 1px); background-size: 56px 56px; mask-image: radial-gradient(ellipse, #000 20%, transparent 72%); opacity: .6; }
 .hero-mark { position: absolute; inset: 1% 0 0; width: 100%; height: 100%; object-fit: contain; mix-blend-mode: screen; opacity: .8; animation: mark-float 10s ease-in-out infinite; }
-.blueprint-label, .blueprint-caption { position: absolute; z-index: 1; font-family: var(--mono); font-size: 9px; line-height: 1.5; letter-spacing: .12em; color: #868686; }
-.blueprint-label-top { top: 12px; left: 22px; }
+.blueprint-caption { position: absolute; z-index: 1; font-family: var(--mono); font-size: 9px; line-height: 1.5; letter-spacing: .12em; color: #868686; }
 .blueprint-cross { position: absolute; z-index: 1; color: #6d6d6d; font-family: var(--mono); font-size: 20px; font-weight: 200; }
 .cross-top { right: 10px; top: 3px; }
 .cross-bottom { bottom: 10px; left: 16px; }
@@ -181,7 +180,6 @@ h2 > span { color: #888; }
 @keyframes reveal-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes mark-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-@media (min-width: 1600px) { .hero-layout { min-height: 730px; } }
 @media (max-width: 1180px) {
   .container { width: calc(100% - 64px); } .brand { --brand-size: 300px; } .desktop-nav { gap: 22px; }
   .examples-layout { gap: 48px; grid-template-columns: .8fr 1.2fr; }
@@ -191,9 +189,9 @@ h2 > span { color: #888; }
 }
 @media (max-width: 1080px) {
   .desktop-nav { display: none; } .menu-button { display: grid; } .nav-shell { height: 88px; }
-  .hero-section { padding-top: 88px; } .hero-layout { min-height: 570px; grid-template-columns: 1.15fr 1fr; gap: 10px; }
-  .hero-copy h1 { font-size: clamp(60px, 7.6vw, 80px); } .hero-actions { align-items: flex-start; flex-direction: column; gap: 17px; }
-  .hero-copy { padding-block: 65px; } .hero-lede { font-size: 14px; } .desktop-break { display: none; }
+  .hero-section { padding-top: 88px; } .hero-layout { gap: 10px; }
+  .hero-copy h1 { font-size: clamp(60px, 7.6vw, 80px); } .hero-actions { gap: 22px; }
+  .hero-copy { padding-block: 65px 16px; } .hero-lede { font-size: 14px; } .desktop-break { display: none; }
   .capability-strip { gap: 15px; } .capability-strip > span { font-size: 9px; line-height: 1.9; } .capability-strip b { display: block; }
   .service-card h3 { font-size: 20px; } .service-card > p { min-height: 145px; font-size: 13px; }
   .examples-layout { grid-template-columns: 1fr; gap: 38px; }
@@ -210,12 +208,12 @@ h2 > span { color: #888; }
 @media (max-width: 720px) {
   .container { width: calc(100% - 40px); } .section { padding-block: 72px; } .brand { --brand-size: 256px; }
   .nav-shell { height: 80px; gap: 14px; } .is-compact .nav-shell { height: 68px; } .hero-section { padding-top: 80px; }
-  .hero-layout { grid-template-columns: 1fr; gap: 0; min-height: auto; } .hero-copy { padding: 67px 0 22px; }
+  .hero-layout { gap: 0; } .hero-copy { padding: 67px 0 22px; }
   .eyebrow { font-size: 9px; letter-spacing: .06em; margin-bottom: 26px; }
   .hero-copy h1 { font-size: clamp(57px, 12.4vw, 86px); margin-bottom: 24px; }
   .hero-lede { max-width: 470px; font-size: 14px; margin-bottom: 27px; }
   .hero-actions { flex-direction: row; align-items: center; gap: 22px; } .hero-actions .button { padding-inline: 18px; gap: 20px; }
-  .hero-actions .text-link { font-size: 11px; gap: 8px; } .hero-visual { width: min(100%, 390px); margin: 13px auto 27px; }
+  .hero-actions .text-link { font-size: 11px; gap: 8px; } .hero-visual { width: min(100%, 320px); margin: 13px auto 27px; }
   .capability-strip { grid-template-columns: 1fr; gap: 14px; padding-block: 25px; position: relative; }
   .capability-strip b { display: inline; margin-right: 15px; } .capability-strip > span { font-size: 9px; letter-spacing: .04em; }
   .capability-strip a { position: absolute; right: 0; top: 24px; } h2 { font-size: clamp(33px, 8vw, 46px); }
@@ -245,7 +243,7 @@ h2 > span { color: #888; }
 }
 @media (max-width: 374px) {
   .brand { --brand-size: 225px; } .container { width: calc(100% - 32px); }
-  .hero-actions { flex-direction: column; align-items: flex-start; gap: 13px; } .hero-copy h1 { font-size: 54px; } .eyebrow { font-size: 8px; }
+  .hero-actions { flex-direction: column; align-items: center; gap: 13px; } .hero-copy h1 { font-size: 54px; } .eyebrow { font-size: 8px; }
 }
 
 /* Downloads share the monochrome theme. Access and encryption are unchanged. */
