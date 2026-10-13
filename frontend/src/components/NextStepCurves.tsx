@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { cubicPath, inflectionCurve } from "../utils/inflectionCurve";
 
 /** One finite, visibility-aware sequence, anchored to the actual link position. */
 export default function NextStepCurves() {
@@ -51,11 +52,9 @@ export default function NextStepCurves() {
         path.setAttribute("d", `M ${start} ${base} Q ${start + span / 2} ${base - rise * 2} ${start + span} ${base}`);
         lengths[i] = path.getTotalLength();
       });
-      incoming.setAttribute("d", `M -30 ${Math.min(h - 15, y + h * .38)} Q ${x * .36} ${y - h * .19} ${x} ${y}`);
-      const run = w + 50 - x;
-      // Preserve the arrival tangent, then bend upward toward the edge.
-      const slope = (h * .19) / Math.max(1, x * .64);
-      outgoing.setAttribute("d", `M ${x} ${y} C ${x + run * .3} ${y + run * .3 * slope} ${x + run * .65} ${y - h * .16} ${w + 50} ${Math.max(20, y - h * .55)}`);
+      const curves = inflectionCurve(x, y, w, h);
+      incoming.setAttribute("d", cubicPath(curves.incoming));
+      outgoing.setAttribute("d", cubicPath(curves.outgoing));
       incomingLength = incoming.getTotalLength(); outgoingLength = outgoing.getTotalLength();
       render();
     };

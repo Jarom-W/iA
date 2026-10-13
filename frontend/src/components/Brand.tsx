@@ -14,7 +14,7 @@ export default function Brand({ className = "" }: { className?: string }) {
       <svg className="brand-icon" viewBox="149 216 954 800" aria-hidden="true" focusable="false">
         <defs>
           <filter id={weightFilter} x="-2%" y="-2%" width="104%" height="104%" colorInterpolationFilters="sRGB">
-            <feMorphology operator="dilate" radius="7" />
+            <feMorphology operator="dilate" radius="3" />
             <feComponentTransfer>
               <feFuncR type="linear" slope="3" intercept="-0.03" />
               <feFuncG type="linear" slope="3" intercept="-0.03" />

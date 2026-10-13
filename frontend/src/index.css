@@ -450,7 +450,7 @@ summary::-webkit-details-marker { display: none; }
 .curve-grid { stroke: #292927; stroke-width: 1; }
 .curve-axes { stroke: #77776e; stroke-width: 1; }
 .curve-inflection-guide { stroke: var(--accent-secondary); stroke-width: 1; stroke-dasharray: 4 6; }
-.improvement-curve { stroke: var(--accent); stroke-width: 2; }
+.improvement-curve { stroke: #81817b; stroke-width: 2; }
 .curve-step { position: absolute; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; transform: translate(-50%, -50%); border: 0; background: transparent; color: #c6c5be; }
 .curve-step:focus-visible { outline-offset: 0; border-radius: 50%; }
 .curve-point { display: block; width: 11px; height: 11px; background: #090909; border: 1px solid var(--accent-secondary); border-radius: 50%; transition: background 160ms, box-shadow 160ms; }
@@ -502,9 +502,14 @@ summary::-webkit-details-marker { display: none; }
 .path-marker { position: relative; display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; }
 .approach-marker { transition: background 220ms; }
 .approach-marker::before { content: ""; position: absolute; inset: 0; border: 1px solid var(--accent); border-radius: 50%; transform: scale(var(--impact-scale, 1)); opacity: var(--impact-opacity, 0); pointer-events: none; }
-.approach-marker::after { content: ""; position: absolute; width: 11px; height: 11px; border-radius: 50%; background: var(--accent); opacity: 0; }
-.home-paths[data-arrived="true"] .approach-marker { background: var(--ink); }
-.home-paths[data-arrived="true"] .approach-marker::after { opacity: 1; }
-.home-paths[data-arrived="true"] .approach-marker svg { opacity: 0; }
+.home-paths[data-arrived="true"] .approach-marker { background: var(--accent); }
+.home-paths[data-arrived="true"] .approach-marker svg { color: #080808; }
 .home-path-link:focus-visible .path-marker { outline: 2px solid var(--accent); outline-offset: 4px; }
 @media (prefers-reduced-motion: reduce) { .approach-marker { transition: none; } }
+
+/* Each half starts at Implement; normalized lengths synchronize the spread. */
+.implementation-spread path { stroke: var(--accent); stroke-width: 2.5; stroke-dasharray: 1; stroke-dashoffset: 1; animation: implementation-spread 1600ms cubic-bezier(.2, .65, .35, 1) forwards; }
+@keyframes implementation-spread { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .implementation-spread path { animation: none; stroke-dashoffset: 0; }
+}

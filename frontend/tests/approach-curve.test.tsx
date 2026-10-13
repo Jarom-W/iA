@@ -15,6 +15,20 @@ describe("interactive approach curve", () => {
     expect(screen.getByText(/The inflection point/)).toBeInTheDocument();
     expect(screen.queryByText("Look between the steps.")).not.toBeInTheDocument();
   });
+  it("spreads from Implement on hover or keyboard selection and resets on another step", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<Process />);
+    expect(container.querySelector(".implementation-spread")).toBeNull();
+    await user.hover(screen.getByRole("tab", { name: "Implement" }));
+    const halves = container.querySelectorAll(".implementation-spread path");
+    expect(halves).toHaveLength(2);
+    halves.forEach(path => expect(path.getAttribute("d")).toMatch(/^M360 220C/));
+    await user.hover(screen.getByRole("tab", { name: "Decide" }));
+    expect(container.querySelector(".implementation-spread")).toBeNull();
+    await user.click(screen.getByRole("tab", { name: "Decide" }));
+    await user.keyboard("{ArrowRight}");
+    expect(container.querySelectorAll(".implementation-spread path")).toHaveLength(2);
+  });
   it("supports keyboard selection, wrapping, and Home/End", async () => {
     const user = userEvent.setup();
     render(<Process />);
