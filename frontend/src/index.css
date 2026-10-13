@@ -39,8 +39,8 @@ svg { flex-shrink: 0; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 /* Independently size the original icon and lettering to the same visible height. */
-.brand { --brand-height: 36px; --brand-gap: 14px; --brand-icon-width: calc(var(--brand-height) * 842 / 920); --brand-wordmark-width: calc(var(--brand-height) * 1584 / 125); display: inline-flex; align-items: center; gap: var(--brand-gap); width: calc(var(--brand-icon-width) + var(--brand-gap) + var(--brand-wordmark-width)); height: 60px; flex-shrink: 0; text-decoration: none; }
-.brand-icon { display: block; width: var(--brand-icon-width); height: var(--brand-height); flex-shrink: 0; overflow: hidden; }
+.brand { --brand-height: 36px; --brand-gap: 14px; --brand-icon-width: calc(var(--brand-height) * 1.2 * 954 / 800); --brand-wordmark-width: calc(var(--brand-height) * 1802 / 171); display: inline-flex; align-items: center; gap: var(--brand-gap); width: calc(var(--brand-icon-width) + var(--brand-gap) + var(--brand-wordmark-width)); height: 60px; flex-shrink: 0; text-decoration: none; }
+.brand-icon { display: block; width: var(--brand-icon-width); height: calc(var(--brand-height) * 1.2); flex-shrink: 0; overflow: hidden; }
 .brand-wordmark { display: block; width: var(--brand-wordmark-width); flex-shrink: 0; transition: opacity 180ms ease; }
 .brand-name-wide { display: block; width: 100%; height: var(--brand-height); overflow: hidden; }
 .brand-name-stacked { display: none; }
@@ -317,11 +317,11 @@ summary::-webkit-details-marker { display: none; }
 @media (max-width: 560px) {
   .container { width: calc(100% - 40px); }
   .section { padding-block: 64px; }
-  .brand { --brand-height: 28px; --brand-gap: 12px; --brand-wordmark-width: calc(var(--brand-height) * 922 / 125); height: 66px; }
+  .brand { --brand-height: 28px; --brand-gap: 12px; --brand-wordmark-width: calc(var(--brand-height) * 1055 / 171); height: 66px; }
   .brand-name-wide { display: none; }
   .brand-name-stacked { display: flex; flex-direction: column; gap: 6px; }
   .brand-name-stacked svg { display: block; height: var(--brand-height); overflow: hidden; }
-  .brand-name-first { width: calc(var(--brand-height) * 620 / 125); }
+  .brand-name-first { width: calc(var(--brand-height) * 722 / 171); }
   .brand-name-second { width: var(--brand-wordmark-width); }
   .nav-shell { height: 80px; gap: 14px; }
   .is-compact .nav-shell { height: 68px; }
@@ -487,3 +487,24 @@ summary::-webkit-details-marker { display: none; }
  .approach-detail { min-height: 390px; padding: 30px 24px; }
 }
 @media (prefers-reduced-motion: reduce) { .curve-point { transition: none; } }
+
+/* The paths sit behind the links; the arrival point is measured from the marker. */
+.home-paths { position: relative; isolation: isolate; overflow: clip; }
+.next-step-curves { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+.background-arc { stroke: #777771; stroke-width: 1; opacity: .18; }
+.arrival-curve, .departure-curve { stroke-width: 1.5; }
+.arrival-curve { opacity: .6; }
+.departure-curve { stroke: var(--accent); opacity: .75; }
+.curve-traveler { opacity: 0; }
+.home-paths .section-heading { width: fit-content; background: var(--paper); box-shadow: 0 0 28px 18px var(--paper); }
+.home-path-link .small-label, .home-path-link .path-name, .home-path-link p { background: #030303e8; box-shadow: 0 0 14px 5px #030303e8; }
+.home-path-link h3 { align-items: center; }
+.path-marker { position: relative; display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; }
+.approach-marker { transition: background 220ms; }
+.approach-marker::before { content: ""; position: absolute; inset: 0; border: 1px solid var(--accent); border-radius: 50%; transform: scale(var(--impact-scale, 1)); opacity: var(--impact-opacity, 0); pointer-events: none; }
+.approach-marker::after { content: ""; position: absolute; width: 11px; height: 11px; border-radius: 50%; background: var(--accent); opacity: 0; }
+.home-paths[data-arrived="true"] .approach-marker { background: var(--ink); }
+.home-paths[data-arrived="true"] .approach-marker::after { opacity: 1; }
+.home-paths[data-arrived="true"] .approach-marker svg { opacity: 0; }
+.home-path-link:focus-visible .path-marker { outline: 2px solid var(--accent); outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) { .approach-marker { transition: none; } }

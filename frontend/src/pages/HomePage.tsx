@@ -1,5 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 import Hero from "../components/Hero";
+import NextStepCurves from "../components/NextStepCurves";
 
 const paths = [
   { name: "Services", href: "/services/", label: "Find the right help", copy: "Business advice, a better website, or a practical improvement to the systems behind your work." },
@@ -8,8 +9,8 @@ const paths = [
 ];
 
 export default function HomePage() {
-  return <><Hero /><section className="section home-paths" aria-labelledby="home-paths-title"><div className="container">
+  return <><Hero /><section className="section home-paths" aria-labelledby="home-paths-title"><NextStepCurves /><div className="container">
     <div className="section-heading"><p className="section-kicker">Practical help for owner-led businesses</p><h2 id="home-paths-title">A clearer next step.</h2></div>
-    <div className="home-path-links">{paths.map(path => <a className="home-path-link" key={path.href} href={path.href}><span className="small-label">{path.label}</span><h3>{path.name}<ArrowUpRight size={20} aria-hidden="true" /></h3><p>{path.copy}</p></a>)}</div>
+    <div className="home-path-links">{paths.map(path => <a className="home-path-link" key={path.href} href={path.href}><span className="small-label">{path.label}</span><h3><span className="path-name">{path.name}</span><span className={`path-marker${path.name === "Approach" ? " approach-marker" : ""}`}><ArrowUpRight size={20} aria-hidden="true" /></span></h3><p>{path.copy}</p></a>)}</div>
   </div></section></>;
 }
