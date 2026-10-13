@@ -71,7 +71,6 @@ export default function Contact() {
         <div className="contact-copy">
           <p className="section-kicker">Contact / Start with a conversation</p>
           <h1 id="contact-title">What would you like<br /><span>to work better?</span></h1>
-          <p>Tell me about your business and the problem on your mind. A website, a recurring bottleneck, a cost you want to understand, or a decision you need to make.</p>
           <p>We’ll start with a short fit conversation. Any assessment or project work is scoped and priced before it begins.</p>
           <a href={`mailto:${business.email}`} className="email-link"><span><Mail size={20} aria-hidden="true" /></span><span><small>Prefer email?</small><strong>{business.email}</strong></span></a>
         </div>

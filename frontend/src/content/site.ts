@@ -22,8 +22,8 @@ export const navigation = [
 ];
 
 export const hero = {
-  headline: ["Better systems.", "Stronger business."],
-  description: "I help small business owners reduce busy work, make informed decisions, and put the right technology to work.",
+  headline: ["Better leverage,","Stronger business."],
+  description: "Business engineering that turns complex operations into streamlined systems.",
   primaryAction: "Let’s talk about your business",
   secondaryAction: "Explore services",
 };
