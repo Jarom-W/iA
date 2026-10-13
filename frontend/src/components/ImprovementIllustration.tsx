@@ -31,8 +31,8 @@ export default function ImprovementIllustration() {
     <section className="section craft-section" aria-labelledby="craft-title">
       <div className="container">
         <div className="section-heading split-heading">
-          <div><p className="section-kicker">The thinking behind the work</p><h2 id="craft-title">A useful improvement<br /><span>should make sense.</span></h2></div>
-          <p>Before building an automation, ask what it might be worth. A simple calculation can make assumptions visible—and a decision easier to discuss.</p>
+          <div><h2 id="craft-title">A useful improvement<br /><span>should make sense.</span></h2></div>
+          <p>Before commiting to anything, ask what it might be worth. A simple calculation can make assumptions visible and a decision easier to discuss.</p>
         </div>
         <div className="estimate-shell">
           <div className="estimate-inputs">

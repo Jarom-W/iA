@@ -21,9 +21,10 @@ export default function Pricing() {
         <div className="section-heading split-heading">
           <div><h1 id="pricing-title">Let's get started.<br /></h1></div>
         </div>
-        <div className="pricing-group-label"><h2>Common Projects</h2></div>
+        {([{ id: "common", title: "Common Projects" }, { id: "advanced", title: "Advanced Systems" }] as const).map(group => <section key={group.id} aria-labelledby={`pricing-${group.id}`}>
+        <div className="pricing-group-label"><h2 id={`pricing-${group.id}`}>{group.title}</h2></div>
         <div className="project-prices">
-          {pricing.projects.map(project => <article className="project-price" key={project.id}>
+          {pricing.projects.filter(project => project.group === group.id).map(project => <article className="project-price" key={project.id}>
             <div className="project-price-title"><h3>{project.name}</h3><p className="price-value">{project.amount === null ? <span className="scoped-price">Scoped after discovery</span> : <>{project.starting && <span>from </span>}{usd(project.amount)}</>}</p></div>
             <div className="project-price-content"><p className="project-summary">{project.summary}</p><ul>{project.includes.map(item => <li key={item}>{item}</li>)}</ul><p className="scope-note">{project.note}</p>
               {project.id === "custom" && <p className="discovery-price">{pricing.technicalDiscovery.name} starts at <strong>{usd(pricing.technicalDiscovery.amount)}</strong> where needed.</p>}
@@ -31,7 +32,7 @@ export default function Pricing() {
             </div>
           </article>)}
         </div>
-        <details className="other-projects"><summary>Other project starting points<span aria-hidden="true">+</span></summary><ul>{pricing.otherProjects.map(project => <li key={project.name}><span>{project.name}<small>{project.note}</small></span><span>{project.qualifier} <strong>{usd(project.amount)}</strong></span></li>)}</ul></details>
+        </section>)}
         <div className="pricing-group-label recurring-label"><h2>Optional ongoing support</h2><span className="small-label">Separate services / Defined scope</span></div>
         <div className="support-grid">
           <SupportGroup title="Website care" description="Keep an agreed website setup maintained." plans={pricing.websiteCare} />

@@ -72,6 +72,7 @@ export const workingPractices = [
   "Existing tools considered before custom development.",
   "Clear ownership and a documented handoff.",
   "Ongoing support with explicit boundaries.",
+  
 ];
 
 export const faqs = [

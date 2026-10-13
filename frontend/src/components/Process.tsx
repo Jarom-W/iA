@@ -35,8 +35,8 @@ export default function Process() {
     <section id="process" className="section process-section" aria-labelledby="process-title">
       <div className="container">
         <div className="section-heading split-heading">
-          <div><p className="section-kicker">Approach / How we work</p><h1 id="process-title">Understand it.<br /><span>Then improve it.</span></h1></div>
-          <p>The answer might be a clearer process, a setting in software you already pay for, or something custom. We make that decision before committing to the build.</p>
+          <div><h1 id="process-title">Understand it.<br /><span>Then improve it.</span></h1></div>
+          <p>Traditional software shops build apps. Strategy consultants give advice. Business engineering merges the two: analyzing how finance, workflow, and technology interact in your business, then building or integrating the precise systems required to drive growth.</p>
         </div>
         <div className="approach-curve-layout">
           <div className="approach-graph">

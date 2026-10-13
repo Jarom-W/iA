@@ -6,8 +6,7 @@ export default function Services() {
     <section id="services" className="section services-section" aria-labelledby="services-title">
       <div className="container">
         <div className="section-heading split-heading">
-          <div><p className="section-kicker">Services</p><h1 id="services-title">A clearer decision.<br /><span>A useful next step.</span></h1></div>
-          <p>Start where the problem is. Consulting, website work, and implementation are available independently. You do not need a hosting plan to work with me.</p>
+          <div><h1 id="services-title">A clearer decision.<br /><span>A useful next step.</span></h1></div>
         </div>
         <div className="service-list">
           {services.map((service, index) => (
