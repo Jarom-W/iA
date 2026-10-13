@@ -17,7 +17,6 @@ export default function About() {
           <h1 id="about-title">Hi, I’m Jarom.<br /><span>I look at the whole business.</span></h1>
           <p>My background brings together finance and economics, software development, and startup operations. I started Inflection Architectures to help owners understand a problem, choose a sensible response, and put it into practice.</p>
           <p>I look at cost, expected benefit, maintainability, and operational fit before choosing technology. Sometimes the useful answer is a better website. Sometimes it is a clearer forecast, fewer tools, or a workflow that no longer depends on memory.</p>
-          <p className="about-local">{business.localContext}</p>
           <h2 className="small-label">What you can expect from me</h2>
           <ul className="working-practices">{workingPractices.map(practice => <li key={practice}>{practice}</li>)}</ul>
         </div>

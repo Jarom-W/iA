@@ -1,6 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 import Brand from "./Brand";
-import { business, navigation } from "../content/site";
+import { business } from "../content/site";
 import { GitHubIcon, LinkedInIcon } from "./SocialIcons";
 
 export default function Footer() {
