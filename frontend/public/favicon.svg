@@ -1,9 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="14" fill="#000"/>
-  <g fill="none" stroke="#fff" stroke-linejoin="round">
-    <path d="M50 7 91 46 50 94 9 46Z" stroke-width="3"/>
-    <path d="M50 27 70 41v20L50 74 30 61V41ZM30 41l20 14 20-14M50 55v19" stroke-width="2"/>
-    <path d="M50 7v20M9 46l21-5m40 0 21 5M30 61l20 33 20-33M50 7 40 34m10-27 10 27M9 46l41 48 41-48" stroke-width="1"/>
-    <path d="M50 27v21L23 65m27-17 27 17" stroke-width="1" opacity=".6"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="110 100 1030 1030">
+  <style>
+    .monogram { stroke: #252525; }
+    @media (prefers-color-scheme: dark) { .monogram { stroke: #f5f4ef; } }
+  </style>
+  <!-- Small-size vector treatment of the supplied A/i mark. No background fill. -->
+  <g fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-width="52">
+    <path stroke="#f77918" d="M160 1005V983Q199 973 224 927L578 227H679L1017 927Q1042 973 1093 983V1005H737V982Q849 957 803 854L708 633M637 329L424 864Q384 958 472 982V1005H160"/>
+    <g class="monogram">
+      <path d="M637 329C813 518 810 580 708 633C660 664 620 708 622 762V1005H521V754C521 684 568 658 664 650"/>
+      <circle cx="642" cy="521" r="54"/>
+    </g>
   </g>
 </svg>
