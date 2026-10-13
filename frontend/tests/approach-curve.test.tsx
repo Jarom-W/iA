@@ -15,19 +15,27 @@ describe("interactive approach curve", () => {
     expect(screen.getByText(/The inflection point/)).toBeInTheDocument();
     expect(screen.queryByText("Look between the steps.")).not.toBeInTheDocument();
   });
-  it("spreads from Implement on hover or keyboard selection and resets on another step", async () => {
+  it("keeps the spread mounted across step changes and resets on a new page visit", async () => {
     const user = userEvent.setup();
-    const { container } = render(<Process />);
+    const { container, unmount } = render(<Process />);
     expect(container.querySelector(".implementation-spread")).toBeNull();
     await user.hover(screen.getByRole("tab", { name: "Implement" }));
     const halves = container.querySelectorAll(".implementation-spread path");
     expect(halves).toHaveLength(2);
     halves.forEach(path => expect(path.getAttribute("d")).toMatch(/^M360 220C/));
+    const spread = container.querySelector(".implementation-spread");
     await user.hover(screen.getByRole("tab", { name: "Decide" }));
-    expect(container.querySelector(".implementation-spread")).toBeNull();
+    expect(container.querySelector(".implementation-spread")).toBe(spread);
+    expect(screen.getByRole("tabpanel")).toHaveAccessibleName("Decide");
     await user.click(screen.getByRole("tab", { name: "Decide" }));
     await user.keyboard("{ArrowRight}");
-    expect(container.querySelectorAll(".implementation-spread path")).toHaveLength(2);
+    expect(container.querySelector(".implementation-spread")).toBe(spread);
+    unmount();
+    const fresh = render(<Process />);
+    expect(fresh.container.querySelector(".implementation-spread")).toBeNull();
+    await user.tab();
+    await user.keyboard("{ArrowRight}{ArrowRight}");
+    expect(fresh.container.querySelectorAll(".implementation-spread path")).toHaveLength(2);
   });
   it("supports keyboard selection, wrapping, and Home/End", async () => {
     const user = userEvent.setup();

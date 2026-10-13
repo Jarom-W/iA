@@ -17,13 +17,18 @@ const outcomes = [
 
 export default function Process() {
   const [active, setActive] = useState(0);
+  const [implemented, setImplemented] = useState(false);
+  function selectStep(index: number) {
+    setActive(index);
+    if (index === 2) setImplemented(true);
+  }
   function handleKey(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     const next = event.key === "ArrowRight" ? (index + 1) % processSteps.length
       : event.key === "ArrowLeft" ? (index + processSteps.length - 1) % processSteps.length
       : event.key === "Home" ? 0 : event.key === "End" ? processSteps.length - 1 : null;
     if (next === null) return;
     event.preventDefault();
-    setActive(next);
+    selectStep(next);
     document.getElementById(`approach-step-${next}`)?.focus();
   }
   return (
@@ -42,12 +47,12 @@ export default function Process() {
                 <path className="curve-axes" d="M45 25v375h640M39 33l6-8 6 8M677 394l8 6-8 6" />
                 <path className="curve-inflection-guide" d="M360 220V400" />
                 <path className="improvement-curve" d="M70 385C263.333333 155 456.666667 285 650 55" />
-                {active === 2 && <g className="implementation-spread">
+                {implemented && <g className="implementation-spread">
                   <path pathLength="1" d="M360 220C263.333333 245 166.666667 270 70 385" />
                   <path pathLength="1" d="M360 220C456.666667 195 553.333333 170 650 55" />
                 </g>}
               </svg>
-              {processSteps.map((step, index) => <button type="button" role="tab" className={`curve-step curve-step-${index}`} key={step.title} id={`approach-step-${index}`} aria-selected={active === index} aria-controls="approach-detail" tabIndex={active === index ? 0 : -1} style={{ left: `${positions[index].x}%`, top: `${positions[index].y}%` }} onMouseEnter={() => setActive(index)} onFocus={() => setActive(index)} onClick={() => setActive(index)} onKeyDown={event => handleKey(event, index)}>
+              {processSteps.map((step, index) => <button type="button" role="tab" className={`curve-step curve-step-${index}`} key={step.title} id={`approach-step-${index}`} aria-selected={active === index} aria-controls="approach-detail" tabIndex={active === index ? 0 : -1} style={{ left: `${positions[index].x}%`, top: `${positions[index].y}%` }} onMouseEnter={() => selectStep(index)} onFocus={() => selectStep(index)} onClick={() => selectStep(index)} onKeyDown={event => handleKey(event, index)}>
                 <span className="curve-point" aria-hidden="true" /><span className="curve-step-label"><span aria-hidden="true">0{index + 1} / </span>{step.title}</span>
               </button>)}
             </div>
