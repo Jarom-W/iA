@@ -64,7 +64,7 @@ export const pricing = {
     {
       name: "Business Review", amount: 395,
       summary: "A regular review of the measures and decisions that matter.",
-      includes: ["Monthly review of agreed measures and current priorities", "Practical recommendations and follow-up", "Up to two total hours across preparation, meeting, and follow-up"],
+      includes: ["Monthly review of agreed measures and current priorities", "Practical recommendations and follow-up", "Up to 4 total hours across preparation, meeting, and follow-up"],
       note: "The review has an agreed scope. Additional analysis or implementation needs a separate agreement.",
     },
     {

@@ -9,7 +9,6 @@ export default function Footer() {
       <div className="container footer-main">
         <div><Brand className="footer-brand" /><p>Business clarity. Practical technology.</p></div>
         <nav aria-label="Footer navigation">
-          {navigation.map(link => <a key={link.name} href={link.href}>{link.name}</a>)}
           <a href="/contact/">Contact <ArrowUpRight size={13} aria-hidden="true" /></a>
         </nav>
         <div className="footer-socials" aria-label="Connect with Jarom Wardwell">

@@ -9,7 +9,6 @@ export const business = {
   contactEndpoint: "https://formsubmit.co/ajax/jaromwardwell@gmail.com",
   github: "https://github.com/Jarom-W",
   linkedin: "https://www.linkedin.com/in/jarom-wardwell-9b8121214",
-  localContext: "Based in Utah County. Working with owner-led businesses across the Wasatch Front.",
 };
 
 export const navigation = [
@@ -21,9 +20,8 @@ export const navigation = [
 ];
 
 export const hero = {
-  category: "Business & Technology Partner",
   headline: ["Better systems.", "Stronger business."],
-  description: "I help small business owners reduce wasted work, make informed decisions, and put the right technology to work—from a better website to the systems behind the business.",
+  description: "I help small business owners reduce busy work, make informed decisions, and put the right technology to work.",
   primaryAction: "Let’s talk about your business",
   secondaryAction: "Explore services",
 };
