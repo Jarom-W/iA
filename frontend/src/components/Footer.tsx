@@ -1,5 +1,4 @@
 import { ArrowUpRight } from "lucide-react";
-import Brand from "./Brand";
 import { business } from "../content/site";
 import { GitHubIcon, LinkedInIcon } from "./SocialIcons";
 
@@ -7,7 +6,6 @@ export default function Footer() {
   return (
     <footer className="site-footer">
       <div className="container footer-main">
-        <div><Brand className="footer-brand" /><p>Business clarity. Practical technology.</p></div>
         <nav aria-label="Footer navigation">
           <a href="/contact/">Contact <ArrowUpRight size={13} aria-hidden="true" /></a>
         </nav>

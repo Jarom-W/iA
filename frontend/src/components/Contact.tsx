@@ -93,7 +93,6 @@ export default function Contact() {
               </fieldset>
               {status === "error" && <p className="form-error" role="alert">Your message was not confirmed. Please try again or <a href={`mailto:${business.email}`}>email {business.email}</a>. Your entries are still here.</p>}
               <button className="button button-primary submit-button" type="submit" disabled={status === "sending"}>{status === "sending" ? "Sending…" : "Send inquiry"}<ArrowUpRight size={18} aria-hidden="true" /></button>
-              <p className="form-note">This form uses FormSubmit to forward your inquiry. I’ll use your details to respond. Please do not include passwords or sensitive business records.</p>
             </form>
           )}
         </div>

@@ -1,12 +1,14 @@
 import { pricing } from "./pricing";
 
+const contactEmail = "jarom@inflectionarchitectures.com";
+
 export const business = {
   name: "Inflection Architectures",
   legalName: "Inflection Architectures LLC",
   founder: "Jarom Wardwell",
   domain: "https://inflectionarchitectures.com",
-  email: "jaromwardwell@gmail.com",
-  contactEndpoint: "https://formsubmit.co/ajax/jaromwardwell@gmail.com",
+  email: contactEmail,
+  contactEndpoint: `https://formsubmit.co/ajax/${contactEmail}`,
   github: "https://github.com/Jarom-W",
   linkedin: "https://www.linkedin.com/in/jarom-wardwell-9b8121214",
 };

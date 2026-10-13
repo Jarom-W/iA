@@ -31,7 +31,7 @@ The site is configured for the custom domain `https://inflectionarchitectures.co
 
 ## Contact form activation
 
-The contact form uses [FormSubmit](https://formsubmit.co/) to send inquiries to `jaromwardwell@gmail.com` without a server. After the first submission from the deployed site, open the activation email from FormSubmit and confirm the address. This one-time step is required before messages can be delivered.
+The contact form uses [FormSubmit](https://formsubmit.co/) to send inquiries to `jarom@inflectionarchitectures.com` without a server. After the first submission from the deployed site, open the activation email from FormSubmit and confirm the address. This one-time step is required before messages can be delivered.
 
 ## Marketing content and pricing
 
