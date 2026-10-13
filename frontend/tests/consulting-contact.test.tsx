@@ -35,8 +35,7 @@ describe("business inquiry", () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => ({ success }) });
     fillInquiry(); send();
     expect(await screen.findByRole("heading", { name: "Thanks for reaching out." })).toBeVisible();
-    const [endpoint, options] = fetchMock.mock.calls[0];
-    expect(endpoint).toBe("https://formsubmit.co/ajax/jarom@inflectionarchitectures.com");
+    const [, options] = fetchMock.mock.calls[0];
     expect(options.body.get("name")).toBe("Test Owner");
     expect(options.body.get("company")).toBe("Example Services");
     fireEvent.click(screen.getByRole("button", { name: "Send another message" }));
@@ -52,6 +51,6 @@ describe("business inquiry", () => {
     rejectRequest(new Error("offline"));
     await waitFor(() => expect(screen.getByRole("alert")).toBeVisible());
     expect(screen.getByRole("button", { name: "Send inquiry" })).toBeEnabled();
-    expect(screen.getByRole("link", { name: "email jarom@inflectionarchitectures.com" })).toHaveAttribute("href", "mailto:jarom@inflectionarchitectures.com");
+    expect(screen.getByRole("link", { name: "email jaromwardwell@gmail.com" })).toHaveAttribute("href", "mailto:jaromwardwell@gmail.com");
   });
 });

@@ -36,8 +36,8 @@ svg { flex-shrink: 0; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 /* Independently size the original icon and lettering to the same visible height. */
-.brand { --brand-height: 36px; --brand-gap: 14px; --brand-icon-height: calc(var(--brand-height) * 1.18); --brand-icon-width: calc(var(--brand-icon-height) * 858 / 936); --brand-wordmark-width: calc(var(--brand-height) * 1584 / 125); display: inline-flex; align-items: center; gap: var(--brand-gap); width: calc(var(--brand-icon-width) + var(--brand-gap) + var(--brand-wordmark-width)); height: 60px; flex-shrink: 0; text-decoration: none; }
-.brand-icon { display: block; width: var(--brand-icon-width); height: var(--brand-icon-height); flex-shrink: 0; overflow: hidden; filter: brightness(1.65); }
+.brand { --brand-height: 36px; --brand-gap: 14px; --brand-icon-width: calc(var(--brand-height) * 842 / 920); --brand-wordmark-width: calc(var(--brand-height) * 1584 / 125); display: inline-flex; align-items: center; gap: var(--brand-gap); width: calc(var(--brand-icon-width) + var(--brand-gap) + var(--brand-wordmark-width)); height: 60px; flex-shrink: 0; text-decoration: none; }
+.brand-icon { display: block; width: var(--brand-icon-width); height: var(--brand-height); flex-shrink: 0; overflow: hidden; }
 .brand-wordmark { display: block; width: var(--brand-wordmark-width); flex-shrink: 0; transition: opacity 180ms ease; }
 .brand-name-wide { display: block; width: 100%; height: var(--brand-height); overflow: hidden; }
 .brand-name-stacked { display: none; }
@@ -388,7 +388,7 @@ summary::-webkit-details-marker { display: none; }
   .footer-bottom { flex-wrap: wrap; gap: 5px; font-size: 9px; }
 }
 @media (max-width: 374px) {
-  .brand { --brand-height: 26px; --brand-gap: 10px; }
+  .brand { --brand-height: 26px; }
   .container { width: calc(100% - 32px); }
   .hero-copy h1 { font-size: 35px; }
   .hero-copy .eyebrow { font-size: 9px; }
@@ -483,15 +483,3 @@ summary::-webkit-details-marker { display: none; }
  .approach-detail { min-height: 390px; padding: 30px 24px; }
 }
 @media (prefers-reduced-motion: reduce) { .curve-point { transition: none; } }
-
-/* The same tile layer reverses both the background and foreground colors,
-   keeping text, controls, and rules legible on either side of every tile. */
-.page-canvas { position: relative; isolation: isolate; background: #030303; }
-.tile-inversion { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; mix-blend-mode: difference; }
-/* Keep the photograph natural while the surrounding interface changes palette. */
-.founder-portrait { position: relative; z-index: 2; }
-html[data-page-tone="light"] .site-header { filter: invert(1); color-scheme: light; }
-@media (forced-colors: active) {
-  .tile-inversion { display: none; }
-  html[data-page-tone="light"] .site-header { filter: none; }
-}

@@ -5,8 +5,8 @@ export const business = {
   legalName: "Inflection Architectures LLC",
   founder: "Jarom Wardwell",
   domain: "https://inflectionarchitectures.com",
-  email: "jarom@inflectionarchitectures.com",
-  contactEndpoint: "https://formsubmit.co/ajax/jarom@inflectionarchitectures.com",
+  email: "jaromwardwell@gmail.com",
+  contactEndpoint: "https://formsubmit.co/ajax/jaromwardwell@gmail.com",
   github: "https://github.com/Jarom-W",
   linkedin: "https://www.linkedin.com/in/jarom-wardwell-9b8121214",
 };
