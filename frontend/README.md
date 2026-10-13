@@ -12,15 +12,20 @@ npm run dev
 ## Checks
 
 ```bash
-npm run build
 npm run lint
+npm test
+npm run build
 ```
 
 ## Deploy to GitHub Pages
 
-```bash
-npm run deploy
-```
+Push to `main` to run the **Deploy website** GitHub Actions workflow, or run it manually from Actions. It installs locked dependencies (`npm ci`), runs lint and all website tests, and builds with TypeScript and Vite before uploading and deploying the Pages artifact. A failed check blocks deployment.
+
+The test suites cover contact validation/submission, the interactive approach curve, improvement calculations, and the improvement calculator UI.
+
+GitHub Pages should use **GitHub Actions** as its build source. The former Stasis release fetching, encryption, artifact checks, tests, and daily refresh schedule have been retired; deployment requires no Stasis secrets or repository variables.
+
+`npm run deploy` is the legacy manual publisher to the `gh-pages` branch; use the Actions workflow for the current deployment pipeline.
 
 The site is configured for the custom domain `https://inflectionarchitectures.com`.
 
