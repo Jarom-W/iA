@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import PageSurface from "./components/PageSurface";
 
 const pages = {
   home: lazy(() => import("./pages/HomePage")),
@@ -18,10 +19,12 @@ function App() {
   return <>
     <a className="skip-link" href="#main-content">Skip to content</a>
     <Navbar />
-    <main id="main-content" className={page === "home" ? undefined : "page-content"}>
-      <Suspense fallback={<div className="page-loading" role="status">Loading page…</div>}><Page /></Suspense>
-    </main>
-    <Footer />
+    <PageSurface>
+      <main id="main-content" className={page === "home" ? undefined : "page-content"}>
+        <Suspense fallback={<div className="page-loading" role="status">Loading page…</div>}><Page /></Suspense>
+      </main>
+      <Footer />
+    </PageSurface>
   </>;
 }
 export default App;
