@@ -13,9 +13,9 @@
   --paper: #030303;
   --surface: #0a0a0a;
   --line: #30302f;
-  --accent: #ff7a24;
-  --accent-secondary: #ffb078;
-  --accent-wash: #ff7a2422;
+  --accent: #25b8b0;
+  --accent-secondary: #25b8b0;
+  --accent-wash: #25b8b022;
   --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 * { box-sizing: border-box; }
