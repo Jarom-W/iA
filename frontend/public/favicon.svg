@@ -1,14 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="110 100 1030 1030">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <style>
-    .monogram { stroke: #252525; }
-    @media (prefers-color-scheme: dark) { .monogram { stroke: #f5f4ef; } }
+    .mark { fill: #252525; }
+    @media (prefers-color-scheme: dark) { .mark { fill: #f5f4ef; } }
   </style>
-  <!-- Small-size vector treatment of the supplied A/i mark. No background fill. -->
-  <g fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-width="52">
-    <path stroke="#f77918" d="M160 1005V983Q199 973 224 927L578 227H679L1017 927Q1042 973 1093 983V1005H737V982Q849 957 803 854L708 633M637 329L424 864Q384 958 472 982V1005H160"/>
-    <g class="monogram">
-      <path d="M637 329C813 518 810 580 708 633C660 664 620 708 622 762V1005H521V754C521 684 568 658 664 650"/>
-      <circle cx="642" cy="521" r="54"/>
-    </g>
+  <!-- Pixel-aligned, small-size treatment of the supplied [i] logo. -->
+  <g class="mark">
+    <path d="M3 3h8v4H7v18h4v4H3ZM29 3h-8v4h4v18h-4v4h8Z"/>
+    <path d="M14 14h4v11h-4Z"/>
   </g>
+  <circle cx="16" cy="10" r="3" fill="#ff7a24"/>
 </svg>
