@@ -37,7 +37,7 @@ class FeedbackTests(unittest.TestCase):
         return self.client.post(path, data=data, base_url=PUBLIC if public else ADMIN)
 
     def login(self):
-        result = self.post("/admin/login", {"password": "long-test-password"})
+        result = self.post("/admin/login", {"username": "jarom", "password": "long-test-password"})
         self.assertEqual(result.status_code, 302)
 
     def create_form(self, automatic=False):
@@ -78,12 +78,17 @@ class FeedbackTests(unittest.TestCase):
         self.post(f"/admin/responses/{response_id}/status", {"status": "hidden"})
         self.assertEqual(self.get("/api/testimonials", public=True).json["testimonials"], [])
 
-    def test_automatic_publication_and_one_use_invitation(self):
+    def test_legacy_automatic_setting_cannot_bypass_approval_and_one_use(self):
         self.login()
-        token = self.invite(self.create_form(automatic=True))
+        form_id = self.create_form(automatic=True)
+        with closing(sqlite3.connect(self.database)) as db, db:
+            self.assertEqual(db.execute("SELECT auto_publish FROM forms").fetchone()[0], 0)
+            db.execute("UPDATE forms SET auto_publish=1")
+        token = self.invite(form_id)
         self.submit(token)
         self.submit(token)
-        self.assertEqual(len(self.get("/api/testimonials", public=True).json["testimonials"]), 1)
+        self.assertEqual(len(self.get("/api/testimonials", public=True).json["testimonials"]), 0)
+        self.assertIn("Client Name", self.get("/admin/queue").text)
         with closing(sqlite3.connect(self.database)) as db, db:
             self.assertEqual(db.execute("SELECT count(*) FROM responses").fetchone()[0], 1)
             self.assertNotEqual(db.execute("SELECT token_hash FROM invitations").fetchone()[0], token)
@@ -97,12 +102,22 @@ class FeedbackTests(unittest.TestCase):
     def test_auth_csrf_host_isolation_and_logout(self):
         self.assertEqual(self.get("/admin").status_code, 302)
         self.assertEqual(self.get("/admin", public=True).status_code, 404)
-        self.assertEqual(self.post("/admin/login", {"password": "long-test-password"}, csrf=False).status_code, 403)
+        self.assertEqual(self.post("/admin/login", {"username": "jarom", "password": "long-test-password"}, csrf=False).status_code, 403)
         self.login()
         self.assertEqual(self.get("/admin").status_code, 200)
         self.assertEqual(self.post("/admin/forms/new", {"title": "Attack"}, csrf=False).status_code, 403)
         self.post("/admin/logout", {})
         self.assertEqual(self.get("/admin").status_code, 302)
+
+    def test_resend_ssl_delivery(self):
+        self.login()
+        form_id = self.create_form()
+        self.app.config.update(SMTP_TLS="ssl", SMTP_PORT=465, SMTP_USERNAME="resend", SMTP_PASSWORD="test-key")
+        with patch("app.smtplib.SMTP_SSL") as smtp:
+            self.post(f"/admin/forms/{form_id}/invite", {"email": "client@example.test", "client_name": "Client"})
+            smtp.return_value.__enter__.return_value.login.assert_called_once_with("resend", "test-key")
+            smtp.return_value.__enter__.return_value.send_message.assert_called_once()
+            self.assertIsNotNone(smtp.call_args.kwargs["context"])
 
     def test_failed_email_revokes_link(self):
         self.login()
@@ -141,7 +156,7 @@ class FeedbackTests(unittest.TestCase):
     def test_null_origin_with_valid_csrf_and_cross_site_rejection(self):
         html = self.get("/admin/login").text
         token = re.search('name="csrf" value="([^\"]+)"', html)[1]
-        data = {"password": "long-test-password", "csrf": token}
+        data = {"username": "jarom", "password": "long-test-password", "csrf": token}
         result = self.client.post("/admin/login", data=data, base_url=ADMIN,
             headers={"Origin": "null", "Sec-Fetch-Site": "same-origin"})
         self.assertEqual(result.status_code, 302)
@@ -152,6 +167,13 @@ class FeedbackTests(unittest.TestCase):
             headers={"Origin": "https://attacker.test", "Sec-Fetch-Site": "cross-site"}).status_code, 403)
         self.assertEqual(self.client.post(f"/f/{token}", data={"name": "Client", "quote": "Hello"}, base_url=PUBLIC,
             headers={"Origin": "null", "Sec-Fetch-Site": "same-origin"}).status_code, 303)
+
+    def test_only_configured_owner_can_login(self):
+        for username in ("", "someone-else"):
+            self.post("/admin/login", {"username": username, "password": "long-test-password"})
+            self.assertEqual(self.get("/admin/queue").status_code, 302)
+        self.login()
+        self.assertEqual(self.get("/admin/queue").status_code, 200)
 
     def test_login_throttle(self):
         for _ in range(10):

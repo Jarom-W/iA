@@ -24,6 +24,7 @@ def create_app(config=None):
     app = Flask(__name__)
     app.config.update(
         SECRET_KEY=os.getenv("SECRET_KEY"),
+        ADMIN_USERNAME=os.getenv("ADMIN_USERNAME", "jarom"),
         ADMIN_PASSWORD_HASH=os.getenv("ADMIN_PASSWORD_HASH", ""),
         ADMIN_ORIGIN=os.getenv("ADMIN_ORIGIN", "https://admin.inflectionarchitectures.com"),
         FEEDBACK_ORIGIN=os.getenv("FEEDBACK_ORIGIN", "https://feedback.inflectionarchitectures.com"),
@@ -178,13 +179,15 @@ def create_app(config=None):
                 if db().execute("SELECT count(*) FROM login_attempts").fetchone()[0] >= 10:
                     abort(429, "Too many sign-in attempts. Try again in five minutes.")
                 db().execute("INSERT INTO login_attempts VALUES (?)", (now,))
-            if check_password_hash(app.config["ADMIN_PASSWORD_HASH"], request.form.get("password", "")):
+            password_ok = check_password_hash(app.config["ADMIN_PASSWORD_HASH"], request.form.get("password", ""))
+            username_ok = hmac.compare_digest(request.form.get("username", "").encode(), app.config["ADMIN_USERNAME"].encode())
+            if password_ok and username_ok:
                 session.clear()
                 session["admin"] = True
                 session.permanent = True
                 csrf()
                 return redirect(url_for("dashboard"))
-            error = "That password was not accepted."
+            error = "That login or password was not accepted."
         return render_template("login.html", error=error)
 
     @app.post("/admin/logout")
@@ -199,6 +202,12 @@ def create_app(config=None):
         return render_template("dashboard.html", forms=db().execute("SELECT * FROM forms ORDER BY created_at DESC").fetchall(),
             responses=db().execute("SELECT r.*, f.title, f.service, i.email FROM responses r JOIN invitations i ON i.id=r.invitation_id JOIN forms f ON f.id=i.form_id ORDER BY r.created_at DESC").fetchall())
 
+    @app.get("/admin/queue")
+    @admin_required
+    def approval_queue():
+        responses = db().execute("SELECT r.*, f.title FROM responses r JOIN invitations i ON i.id=r.invitation_id JOIN forms f ON f.id=i.form_id WHERE r.status='pending' ORDER BY r.created_at ASC").fetchall()
+        return render_template("queue.html", responses=responses)
+
     @app.route("/admin/forms/new", methods=["GET", "POST"])
     @admin_required
     def new_form():
@@ -211,7 +220,7 @@ def create_app(config=None):
                     raise ValueError("Use up to eight distinct questions, each no more than 240 characters.")
                 form_id = secrets.token_hex(12)
                 with db():
-                    db().execute("INSERT INTO forms VALUES (?,?,?,?,?,?,?)", (form_id, title, introduction, service, json.dumps(questions), int(request.form.get("auto_publish") == "yes"), int(time.time())))
+                    db().execute("INSERT INTO forms VALUES (?,?,?,?,?,?,?)", (form_id, title, introduction, service, json.dumps(questions), 0, int(time.time())))
                 return redirect(url_for("form_detail", form_id=form_id))
             except ValueError as exc:
                 error = str(exc)
@@ -274,7 +283,7 @@ def create_app(config=None):
                 name, company, role, quote = field("name", 120, True), field("company", 120), field("role", 120), field("quote", 1500, True)
                 answers = {q: field(f"answer_{i}", 2000) for i, q in enumerate(questions)}
                 consent = request.form.get("consent") == "yes"
-                status = ("published" if form["auto_publish"] else "pending") if consent else "private"
+                status = "pending" if consent else "private"
                 now = int(time.time())
                 with db():
                     db().execute("BEGIN IMMEDIATE")

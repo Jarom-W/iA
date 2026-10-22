@@ -4,5 +4,5 @@
 <label for="service">Project or service label <small>Optional; shown with the published testimonial.</small></label><input id="service" name="service" maxlength="80" value="{{ request.form.get('service','') }}" placeholder="Website design">
 <label for="introduction">Your introduction</label><textarea id="introduction" name="introduction" maxlength="1000" rows="3">{{ request.form.get('introduction','Thank you for trusting me with your project. I’d love to hear what worked, what changed, and how I can improve.') }}</textarea>
 <label for="questions">Private follow-up questions <small>One per line, up to eight. These answers are only visible to you.</small></label><textarea id="questions" name="questions" maxlength="2500" rows="5" placeholder="What could I do better next time?">{{ request.form.get('questions','') }}</textarea>
-<label class="check"><input type="checkbox" name="auto_publish" value="yes" {% if request.form.get('auto_publish') %}checked{% endif %}><span>Publish automatically when the client gives permission.<small>Leave unchecked to review each testimonial before it appears on the homepage.</small></span></label>
+<p class="hint">Every submission stays private until you review it. Only testimonials with client permission can be approved for the website.</p>
 <button>Create form →</button></form></div>{% endblock %}
