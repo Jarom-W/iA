@@ -10,6 +10,7 @@ The marketing site stays on GitHub Pages. This Docker service hosts both `feedba
 - Generate personal `https://feedback.inflectionarchitectures.com/?form=…` links to copy and send yourself, without configuring email. The full link is shown once; only its hash is stored.
 - Optionally email invitations using authenticated SMTP with TLS. Links expire after 30 days and accept one response. Revoke unused links from admin.
 - Public feed includes only approved, consented testimonials. No client emails or private answers are exposed.
+- Delete test forms (including their invitations and responses), or delete individual responses, from their detail pages. A confirmation page explains the scope before deletion. Deleting a response revokes its invitation; deleting published content removes it from the feed. Existing database backups retain deleted records until backup retention expires.
 - Publish or hide consented testimonials from admin. Original client wording is preserved; editing client quotes is not supported.
 - Homepage displays up to 12 published testimonials, newest first. Empty/unavailable feeds hide the section without disrupting the site. Changes appear on the next page load.
 

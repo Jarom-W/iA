@@ -240,6 +240,22 @@ def create_app(config=None):
         invitations = db().execute("SELECT i.*, r.id AS response_id FROM invitations i LEFT JOIN responses r ON r.invitation_id=i.id WHERE i.form_id=? ORDER BY i.created_at DESC", (form_id,)).fetchall()
         return render_template("form-detail.html", form=form, questions=json.loads(form["questions"]), invitations=invitations)
 
+    @app.route("/admin/forms/<form_id>/delete", methods=["GET", "POST"])
+    @admin_required
+    def delete_form(form_id):
+        form = row_or_404("SELECT * FROM forms WHERE id=?", (form_id,))
+        if request.method == "POST":
+            with db():
+                db().execute("BEGIN IMMEDIATE")
+                db().execute("DELETE FROM responses WHERE invitation_id IN (SELECT id FROM invitations WHERE form_id=?)", (form_id,))
+                db().execute("DELETE FROM invitations WHERE form_id=?", (form_id,))
+                db().execute("DELETE FROM forms WHERE id=?", (form_id,))
+            flash("Form, invitations, and responses deleted.", "success")
+            return redirect(url_for("dashboard"))
+        counts = db().execute("SELECT count(*) AS invitations, count(r.id) AS responses FROM invitations i LEFT JOIN responses r ON r.invitation_id=i.id WHERE i.form_id=?", (form_id,)).fetchone()
+        return render_template("delete.html", kind="form", label=form["title"], counts=counts,
+            cancel_url=url_for("form_detail", form_id=form_id))
+
     @app.post("/admin/forms/<form_id>/invite")
     @admin_required
     def invite(form_id):
@@ -320,6 +336,21 @@ def create_app(config=None):
     def response_detail(response_id):
         response = row_or_404("SELECT r.*, f.title, f.service, i.email FROM responses r JOIN invitations i ON i.id=r.invitation_id JOIN forms f ON f.id=i.form_id WHERE r.id=?", (response_id,))
         return render_template("response.html", response=response, answers=json.loads(response["answers"]))
+
+    @app.route("/admin/responses/<response_id>/delete", methods=["GET", "POST"])
+    @admin_required
+    def delete_response(response_id):
+        response = row_or_404("SELECT * FROM responses WHERE id=?", (response_id,))
+        if request.method == "POST":
+            with db():
+                db().execute("BEGIN IMMEDIATE")
+                # Keep the consumed invitation unusable after its response is removed.
+                db().execute("UPDATE invitations SET revoked=1 WHERE id=?", (response["invitation_id"],))
+                db().execute("DELETE FROM responses WHERE id=?", (response_id,))
+            flash("Client response deleted and its invitation revoked.", "success")
+            return redirect(url_for("dashboard"))
+        return render_template("delete.html", kind="response", label=response["name"],
+            cancel_url=url_for("response_detail", response_id=response_id))
 
     @app.post("/admin/responses/<response_id>/status")
     @admin_required

@@ -218,6 +218,48 @@ class FeedbackTests(unittest.TestCase):
         with closing(sqlite3.connect(self.database)) as db:
             self.assertEqual(db.execute("SELECT quote,rating FROM responses").fetchone(), ("The project made a difference.", None))
 
+    def test_delete_response_removes_publication_and_revokes_invitation(self):
+        self.login()
+        token = self.invite(self.create_form())
+        self.submit(token)
+        response_id = self.response_id()
+        self.post(f"/admin/responses/{response_id}/status", {"status": "published"})
+        path = f"/admin/responses/{response_id}/delete"
+        self.assertIn("Delete response permanently", self.get(path).text)
+        self.assertEqual(len(self.get("/api/testimonials", public=True).json["testimonials"]), 1)
+        self.assertEqual(self.post(path, {}, csrf=False).status_code, 403)
+        self.assertEqual(self.post(path, {}).status_code, 302)
+        self.assertEqual(self.get("/api/testimonials", public=True).json["testimonials"], [])
+        self.assertEqual(self.submit(token).status_code, 410)
+        self.assertEqual(self.get(f"/admin/responses/{response_id}").status_code, 404)
+        with closing(sqlite3.connect(self.database)) as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM forms").fetchone()[0], 1)
+
+    def test_delete_form_only_removes_its_related_data(self):
+        self.login()
+        first = self.create_form()
+        token = self.invite(first)
+        self.submit(token)
+        self.post(f"/admin/responses/{self.response_id()}/status", {"status": "published"})
+        second = self.create_form()
+        other_token = self.invite(second)
+        self.submit(other_token)
+        path = f"/admin/forms/{first}/delete"
+        self.assertIn("1 response(s)", self.get(path).text)
+        self.assertEqual(self.get(path, public=True).status_code, 404)
+        self.assertEqual(self.post(path, {}, csrf=False).status_code, 403)
+        self.post("/admin/logout", {})
+        self.assertEqual(self.get(path).status_code, 302)
+        self.login()
+        self.assertEqual(self.post(path, {}).status_code, 302)
+        self.assertEqual(self.get(f"/f/{token}", public=True).status_code, 404)
+        self.assertEqual(self.get("/api/testimonials", public=True).json["testimonials"], [])
+        with closing(sqlite3.connect(self.database)) as db:
+            self.assertEqual(db.execute("SELECT id FROM forms").fetchall(), [(second,)])
+            self.assertEqual(db.execute("SELECT count(*) FROM responses").fetchone()[0], 1)
+            self.assertEqual(db.execute("SELECT count(*) FROM invitations").fetchone()[0], 1)
+            self.assertEqual(db.execute("PRAGMA foreign_key_check").fetchall(), [])
+
     def test_login_throttle(self):
         for _ in range(10):
             self.assertEqual(self.post("/admin/login", {"password": "wrong"}).status_code, 200)
