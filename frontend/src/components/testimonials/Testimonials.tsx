@@ -47,7 +47,7 @@ export default function Testimonials() {
   return <section className="section testimonials-section" aria-labelledby="testimonials-title">
     <div className="container">
       <div className="section-heading testimonials-heading">
-        <div><p className="section-kicker">In their words</p><h2 id="testimonials-title">The work.<br /><span>The difference it made.</span></h2></div>
+        <div><p className="section-kicker">In their words</p><h2 id="testimonials-title">What people are saying.</h2></div>
         <p>Experiences shared by the people I’ve worked with.</p>
       </div>
       <div className="testimonial-grid">
