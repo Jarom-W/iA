@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS responses (
  name TEXT NOT NULL, company TEXT NOT NULL, role TEXT NOT NULL,
  quote TEXT NOT NULL, answers TEXT NOT NULL, consent INTEGER NOT NULL,
  status TEXT NOT NULL CHECK(status IN ('private','pending','published','hidden')),
- created_at INTEGER NOT NULL, published_at INTEGER
+ created_at INTEGER NOT NULL, published_at INTEGER,
+ rating INTEGER CHECK(rating BETWEEN 1 AND 5)
 );
 CREATE TABLE IF NOT EXISTS login_attempts (created_at INTEGER NOT NULL);

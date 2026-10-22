@@ -540,6 +540,7 @@ summary::-webkit-details-marker { display: none; }
 .testimonial-card { display: flex; flex-direction: column; min-width: 0; margin: 0; padding: 30px; border: 1px solid var(--line); background: var(--paper); }
 .testimonial-card > svg { color: var(--accent); margin-bottom: 24px; }
 .testimonial-service { margin-bottom: 16px; }
+.testimonial-card .testimonial-rating { color: var(--accent); letter-spacing: .16em; font-size: 18px; margin-bottom: 16px; }
 .testimonial-card blockquote { margin: 0 0 30px; max-width: 75ch; }
 .testimonial-card blockquote p { color: var(--ink); font-size: 17px; line-height: 1.8; white-space: pre-line; overflow-wrap: anywhere; }
 .testimonial-card figcaption { display: flex; align-items: center; gap: 14px; margin-top: auto; padding-top: 24px; border-top: 1px solid var(--line); }

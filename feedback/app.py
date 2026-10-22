@@ -58,6 +58,11 @@ def create_app(config=None):
     database.parent.mkdir(parents=True, exist_ok=True)
     with closing(sqlite3.connect(database)) as conn:
         conn.executescript(Path(__file__).with_name("schema.sql").read_text())
+        # Preserve existing responses; historic feedback has no inferred rating.
+        conn.execute("BEGIN IMMEDIATE")
+        if "rating" not in {row[1] for row in conn.execute("PRAGMA table_info(responses)")}:
+            conn.execute("ALTER TABLE responses ADD COLUMN rating INTEGER CHECK(rating BETWEEN 1 AND 5)")
+        conn.commit()
     if not app.testing:
         database.chmod(0o600)
 
@@ -144,7 +149,7 @@ def create_app(config=None):
         message["From"] = app.config["SMTP_FROM"]
         message["To"] = recipient
         message["Subject"] = "Your experience with Inflection Architectures"
-        message.set_content(f"Hi {name},\n\nI'd appreciate your feedback on our work together.\n\n{title}\n{app.config['FEEDBACK_ORIGIN']}/f/{token}\n\nThis personal link expires in 30 days and accepts one response. You can choose whether your testimonial may appear on our website.\n\nThank you,\nJarom\nInflection Architectures\n")
+        message.set_content(f"Hi {name},\n\nI'd appreciate your feedback on our work together.\n\n{title}\n{app.config['FEEDBACK_ORIGIN']}/?form={token}\n\nThis personal link expires in 30 days and accepts one response. You can choose whether your testimonial may appear on our website.\n\nThank you,\nJarom\nInflection Architectures\n")
         if app.config["SMTP_TLS"] not in ("ssl", "starttls"):
             raise RuntimeError("SMTP_TLS must be ssl or starttls.")
         smtp_type = smtplib.SMTP_SSL if app.config["SMTP_TLS"] == "ssl" else smtplib.SMTP
@@ -161,11 +166,13 @@ def create_app(config=None):
         db().execute("SELECT 1")
         return {"status": "ok"}
 
-    @app.get("/")
+    @app.route("/", methods=["GET", "POST"])
     def index():
         if request.host == urlsplit(app.config["ADMIN_ORIGIN"]).netloc:
             return redirect(url_for("dashboard"))
-        return render_template("message.html", title="Your experience matters.", message="Open the personal link in your invitation email to share your feedback.")
+        if request.host == urlsplit(app.config["FEEDBACK_ORIGIN"]).netloc and request.args.get("form"):
+            return feedback(request.args["form"])
+        return render_template("message.html", title="Your experience matters.", message="Open the personal link Jarom shared with you to leave your feedback.")
 
     @app.route("/admin/login", methods=["GET", "POST"])
     def login():
@@ -238,8 +245,11 @@ def create_app(config=None):
     def invite(form_id):
         form = row_or_404("SELECT * FROM forms WHERE id=?", (form_id,))
         try:
-            email, name = field("email", 254, True), field("client_name", 120, True)
-            if not re.fullmatch(r"[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+", email):
+            delivery = request.form.get("delivery", "email")
+            if delivery not in ("email", "link"):
+                raise ValueError("Choose a valid delivery method.")
+            email, name = field("email", 254, delivery == "email"), field("client_name", 120, True)
+            if email and not re.fullmatch(r"[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+", email):
                 raise ValueError("Enter a valid client email address.")
         except ValueError as exc:
             flash(str(exc), "error")
@@ -247,6 +257,10 @@ def create_app(config=None):
         token, invitation_id, now = secrets.token_urlsafe(32), secrets.token_hex(12), int(time.time())
         with db():
             db().execute("INSERT INTO invitations (id,form_id,email,client_name,token_hash,expires_at,created_at) VALUES (?,?,?,?,?,?,?)", (invitation_id, form_id, email, name, hashlib.sha256(token.encode()).hexdigest(), now + 30 * 86400, now))
+        if delivery == "link":
+            with db():
+                db().execute("UPDATE invitations SET mail_status='not_requested' WHERE id=?", (invitation_id,))
+            return render_template("invitation-link.html", link=f"{app.config['FEEDBACK_ORIGIN']}/?form={token}", form=form, client_name=name)
         try:
             send_invitation(email, name, form["title"], token)
         except (OSError, smtplib.SMTPException, RuntimeError, ValueError):
@@ -281,6 +295,10 @@ def create_app(config=None):
                 abort(403)
             try:
                 name, company, role, quote = field("name", 120, True), field("company", 120), field("role", 120), field("quote", 1500, True)
+                rating_text = request.form.get("rating", "")
+                if rating_text not in ("1", "2", "3", "4", "5"):
+                    raise ValueError("Choose a star rating from 1 to 5.")
+                rating = int(rating_text)
                 answers = {q: field(f"answer_{i}", 2000) for i, q in enumerate(questions)}
                 consent = request.form.get("consent") == "yes"
                 status = "pending" if consent else "private"
@@ -289,7 +307,7 @@ def create_app(config=None):
                     db().execute("BEGIN IMMEDIATE")
                     # Recheck expiry/revocation inside the write transaction.
                     current = invite_record(token)
-                    db().execute("INSERT INTO responses VALUES (?,?,?,?,?,?,?,?,?,?,?)", (secrets.token_hex(12), current["id"], name, company, role, quote, json.dumps(answers), int(consent), status, now, now if status == "published" else None))
+                    db().execute("INSERT INTO responses (id,invitation_id,name,company,role,quote,answers,consent,status,created_at,published_at,rating) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (secrets.token_hex(12), current["id"], name, company, role, quote, json.dumps(answers), int(consent), status, now, None, rating))
                 return redirect(url_for("feedback", token=token), code=303)
             except ValueError as exc:
                 error = str(exc)
@@ -320,7 +338,7 @@ def create_app(config=None):
 
     @app.get("/api/testimonials")
     def testimonials():
-        rows = db().execute("SELECT r.id,r.name,r.company,r.role,r.quote,f.service FROM responses r JOIN invitations i ON i.id=r.invitation_id JOIN forms f ON f.id=i.form_id WHERE r.status='published' AND r.consent=1 ORDER BY r.published_at DESC LIMIT 12").fetchall()
+        rows = db().execute("SELECT r.id,r.name,r.company,r.role,r.quote,r.rating,f.service FROM responses r JOIN invitations i ON i.id=r.invitation_id JOIN forms f ON f.id=i.form_id WHERE r.status='published' AND r.consent=1 ORDER BY r.published_at DESC LIMIT 12").fetchall()
         return jsonify(testimonials=[dict(row) for row in rows])
 
     @app.errorhandler(400)

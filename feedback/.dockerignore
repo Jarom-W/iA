@@ -6,3 +6,6 @@ tests
 backups/
 
 secrets/
+
+data/
+.env.new

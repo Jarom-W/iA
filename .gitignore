@@ -223,3 +223,6 @@ feedback/*.sqlite3*
 feedback/backups/
 
 feedback/secrets/
+
+feedback/data/
+feedback/.env.new

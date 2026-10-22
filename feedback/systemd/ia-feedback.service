@@ -1,0 +1,16 @@
+[Unit]
+Description=Inflection Architectures client feedback
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=%h/services/ia-feedback
+EnvironmentFile=%h/services/ia-feedback/.env
+ExecStart=%h/services/ia-feedback/.venv/bin/gunicorn --bind 127.0.0.1:8091 --workers 2 --timeout 45 app:create_app()
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

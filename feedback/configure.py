@@ -14,17 +14,15 @@ def main():
     password = getpass('Owner password (at least 16 characters): ')
     if len(password) < 16 or password != getpass('Repeat password: '):
         raise SystemExit('Passwords must match and contain at least 16 characters.')
-    smtp_key = getpass('Resend API key (sending permission for your verified domain): ').strip()
+    smtp_key = getpass('Resend API key (optional; leave blank to share links yourself): ').strip()
     sender = input('Verified sender [jarom@inflectionarchitectures.com]: ').strip() or 'jarom@inflectionarchitectures.com'
     token = getpass('Cloudflare tunnel token (leave blank to use an existing host tunnel): ').strip()
-    if not smtp_key:
-        raise SystemExit('A Resend API key is required.')
     values = dict(SECRET_KEY=secrets.token_urlsafe(48), ADMIN_USERNAME=username,
                   ADMIN_PASSWORD_HASH=generate_password_hash(password),
                   ADMIN_ORIGIN='https://admin.inflectionarchitectures.com',
                   FEEDBACK_ORIGIN='https://feedback.inflectionarchitectures.com',
                   PUBLIC_SITE_ORIGIN='https://inflectionarchitectures.com',
-                  DATABASE_PATH='/data/feedback.sqlite3', SMTP_HOST='smtp.resend.com',
+                  DATABASE_PATH='/data/feedback.sqlite3', SMTP_HOST='smtp.resend.com' if smtp_key else '',
                   SMTP_PORT='465', SMTP_USERNAME='resend', SMTP_PASSWORD=smtp_key,
                   SMTP_FROM=f'Inflection Architectures <{sender}>', SMTP_TLS='ssl')
     if any(any(c in v for c in "\r\n'\\") for v in values.values()):

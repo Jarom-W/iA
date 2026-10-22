@@ -8,6 +8,7 @@ type Testimonial = {
   company?: string;
   role?: string;
   service?: string;
+  rating?: number | null;
 };
 
 const endpoint = import.meta.env.VITE_TESTIMONIALS_URL || "https://feedback.inflectionarchitectures.com/api/testimonials";
@@ -15,7 +16,8 @@ const endpoint = import.meta.env.VITE_TESTIMONIALS_URL || "https://feedback.infl
 function isTestimonial(value: unknown): value is Testimonial {
   if (!value || typeof value !== "object") return false;
   const item = value as Record<string, unknown>;
-  return ["id", "quote", "name"].every(key => typeof item[key] === "string" && (item[key] as string).trim().length > 0)
+  return (item.rating == null || (Number.isInteger(item.rating) && Number(item.rating) >= 1 && Number(item.rating) <= 5))
+    && ["id", "quote", "name"].every(key => typeof item[key] === "string" && (item[key] as string).trim().length > 0)
     && ["company", "role", "service"].every(key => item[key] === undefined || typeof item[key] === "string");
 }
 
@@ -52,6 +54,7 @@ export default function Testimonials() {
         {items.map(item => <figure className="testimonial-card" key={item.id}>
           <Quote size={24} strokeWidth={1.4} aria-hidden="true" />
           {item.service && <p className="small-label testimonial-service">{item.service}</p>}
+          {item.rating != null && <p className="testimonial-rating" aria-label={`${item.rating} out of 5 stars`}><span aria-hidden="true">{"★".repeat(item.rating)}{"☆".repeat(5 - item.rating)}</span></p>}
           <blockquote><p>{item.quote}</p></blockquote>
           <figcaption>
             <span className="testimonial-initial" aria-hidden="true">{Array.from(item.name.trim())[0]}</span>

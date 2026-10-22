@@ -50,11 +50,11 @@ class FeedbackTests(unittest.TestCase):
             result = self.post(f"/admin/forms/{form_id}/invite", {"email": "client@example.test", "client_name": "Client"})
             self.assertEqual(result.status_code, 302)
             message = smtp.return_value.__enter__.return_value.send_message.call_args.args[0]
-            token = re.search(r"/f/([\w-]+)", message.get_content())[1]
+            token = re.search(r"\?form=([\w-]+)", message.get_content())[1]
         return token
 
     def submit(self, token, consent=True):
-        return self.post(f"/f/{token}", {"name": "Client Name", "company": "Test Co", "role": "Owner", "quote": "The project made a difference.", "answer_0": "Private details", "consent": "yes" if consent else ""}, public=True)
+        return self.post(f"/f/{token}", {"name": "Client Name", "company": "Test Co", "role": "Owner", "quote": "The project made a difference.", "rating": "4", "answer_0": "Private details", "consent": "yes" if consent else ""}, public=True)
 
     def response_id(self):
         with closing(sqlite3.connect(self.database)) as db, db:
@@ -72,7 +72,8 @@ class FeedbackTests(unittest.TestCase):
         feed = self.get("/api/testimonials", public=True)
         self.assertEqual(feed.headers["Access-Control-Allow-Origin"], "https://www.example.test")
         item = feed.json["testimonials"][0]
-        self.assertEqual(set(item), {"id", "name", "company", "role", "quote", "service"})
+        self.assertEqual(set(item), {"id", "name", "company", "role", "quote", "rating", "service"})
+        self.assertEqual(item["rating"], 4)
         self.assertNotIn("Private details", feed.text)
         self.assertNotIn("client@example.test", feed.text)
         self.post(f"/admin/responses/{response_id}/status", {"status": "hidden"})
@@ -149,7 +150,7 @@ class FeedbackTests(unittest.TestCase):
         token = self.invite(form_id)
         result = self.post(f"/f/{token}", {"name": "Client", "quote": "x" * 1501}, public=True)
         self.assertIn("maximum 1500", result.text)
-        result = self.post(f"/f/{token}", {"name": "<script>alert(1)</script>", "quote": "fine"}, public=True)
+        result = self.post(f"/f/{token}", {"name": "<script>alert(1)</script>", "quote": "fine", "rating": "5"}, public=True)
         self.assertEqual(result.status_code, 303)
         self.assertIn("&lt;script&gt;", self.get(f"/admin/responses/{self.response_id()}").text)
 
@@ -163,9 +164,9 @@ class FeedbackTests(unittest.TestCase):
         self.assertEqual(self.client.post("/admin/login", data=data, base_url=ADMIN,
             headers={"Origin": "null", "Sec-Fetch-Site": "cross-site"}).status_code, 403)
         token = self.invite(self.create_form())
-        self.assertEqual(self.client.post(f"/f/{token}", data={"name": "Client", "quote": "Hello"}, base_url=PUBLIC,
+        self.assertEqual(self.client.post(f"/f/{token}", data={"name": "Client", "quote": "Hello", "rating": "5"}, base_url=PUBLIC,
             headers={"Origin": "https://attacker.test", "Sec-Fetch-Site": "cross-site"}).status_code, 403)
-        self.assertEqual(self.client.post(f"/f/{token}", data={"name": "Client", "quote": "Hello"}, base_url=PUBLIC,
+        self.assertEqual(self.client.post(f"/f/{token}", data={"name": "Client", "quote": "Hello", "rating": "5"}, base_url=PUBLIC,
             headers={"Origin": "null", "Sec-Fetch-Site": "same-origin"}).status_code, 303)
 
     def test_only_configured_owner_can_login(self):
@@ -174,6 +175,48 @@ class FeedbackTests(unittest.TestCase):
             self.assertEqual(self.get("/admin/queue").status_code, 302)
         self.login()
         self.assertEqual(self.get("/admin/queue").status_code, 200)
+
+    def test_copy_link_without_smtp_and_query_url(self):
+        self.login()
+        form_id = self.create_form()
+        self.app.config["SMTP_HOST"] = ""
+        with patch("app.smtplib.SMTP") as smtp:
+            result = self.post(f"/admin/forms/{form_id}/invite", {"delivery": "link", "client_name": "Client"})
+            smtp.assert_not_called()
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result.headers["Cache-Control"], "no-store")
+        token = re.search(r"\?form=([\w-]+)", result.text)[1]
+        self.assertEqual(self.get(f"/?form={token}", public=True).status_code, 200)
+        data = {"name": "Client", "quote": "Excellent", "rating": "5", "consent": "yes"}
+        self.assertEqual(self.post(f"/?form={token}", data, public=True).status_code, 303)
+        self.assertIn("Client", self.get("/admin/queue").text)
+        self.assertEqual(self.get("/api/testimonials", public=True).json["testimonials"], [])
+        self.assertEqual(self.post(f"/?form={token}", data, public=True).status_code, 200)
+        with closing(sqlite3.connect(self.database)) as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM responses").fetchone()[0], 1)
+            self.assertEqual(db.execute("SELECT mail_status FROM invitations").fetchone()[0], "not_requested")
+
+    def test_rating_validation(self):
+        self.login()
+        token = self.invite(self.create_form())
+        for rating in ("", "0", "6", "1.5", "five", "-1"):
+            result = self.post(f"/?form={token}", {"name": "Client", "quote": "Good", "rating": rating}, public=True)
+            self.assertIn("Choose a star rating", result.text)
+        with closing(sqlite3.connect(self.database)) as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM responses").fetchone()[0], 0)
+        for rating in range(1, 6):
+            token = self.invite(self.create_form())
+            self.assertEqual(self.post(f"/?form={token}", {"name": "Client", "quote": "Good", "rating": str(rating)}, public=True).status_code, 303)
+
+    def test_existing_database_migration(self):
+        self.login()
+        self.submit(self.invite(self.create_form()))
+        with closing(sqlite3.connect(self.database)) as db, db:
+            db.execute("ALTER TABLE responses DROP COLUMN rating")
+        for _ in range(2):
+            create_app(dict(self.app.config))
+        with closing(sqlite3.connect(self.database)) as db:
+            self.assertEqual(db.execute("SELECT quote,rating FROM responses").fetchone(), ("The project made a difference.", None))
 
     def test_login_throttle(self):
         for _ in range(10):

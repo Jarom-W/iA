@@ -5,18 +5,19 @@ The marketing site stays on GitHub Pages. This Docker service hosts both `feedba
 ## What is implemented
 
 - Create reusable forms with a title, introduction, service label, and up to eight private free-text questions.
-- Every form includes a testimonial, name, optional role/company, and optional explicit publication consent.
+- Every form includes a required 1–5 star rating, testimonial, name, optional role/company, and optional explicit publication consent. Existing responses remain unrated.
 - Every consented submission enters the approval queue. There is no automatic publication option, including for older forms. Feedback without consent remains private.
-- Email invitations using authenticated SMTP with TLS. Links expire after 30 days and accept one response. Revoke unused links from admin.
+- Generate personal `https://feedback.inflectionarchitectures.com/?form=…` links to copy and send yourself, without configuring email. The full link is shown once; only its hash is stored.
+- Optionally email invitations using authenticated SMTP with TLS. Links expire after 30 days and accept one response. Revoke unused links from admin.
 - Public feed includes only approved, consented testimonials. No client emails or private answers are exposed.
 - Publish or hide consented testimonials from admin. Original client wording is preserved; editing client quotes is not supported.
 - Homepage displays up to 12 published testimonials, newest first. Empty/unavailable feeds hide the section without disrupting the site. Changes appear on the next page load.
 
 ## Server setup
 
-Requires Docker Compose, persistent storage, HTTPS routing for both subdomains, and an SMTP provider authorized to send as `jarom@inflectionarchitectures.com`. The root domain does not need to move off GitHub Pages.
+Requires Docker Compose, persistent storage, HTTPS routing for both subdomains, and optionally an SMTP provider authorized to send as `jarom@inflectionarchitectures.com`. The root domain does not need to move off GitHub Pages.
 
-1. Verify `inflectionarchitectures.com` in [Resend](https://resend.com/docs/send-with-smtp), add the sender DNS records it supplies, and create a sending API key. We use SMTP over TLS on port 465; no client emails are sent during setup.
+1. For built-in email delivery, verify `inflectionarchitectures.com` in [Resend](https://resend.com/docs/send-with-smtp), add the sender DNS records it supplies, and create a sending API key. We use SMTP over TLS on port 465; no client emails are sent during setup.
 2. On the server, prepare the private configuration:
 
    ```sh
@@ -36,14 +37,44 @@ Requires Docker Compose, persistent storage, HTTPS routing for both subdomains, 
    | `feedback.inflectionarchitectures.com` | All | Origin chosen above |
 
    Leave **HTTP Host Header** unset so the original hostname reaches the app. Cloudflare provides public HTTPS. No inbound router ports are needed. Keep the apex and `www` GitHub Pages records unchanged. Do not add interactive authentication to the feedback hostname: its testimonial feed must be public. Configure these hosts to bypass any custom “cache everything” rule; the application sends `Cache-Control: no-store`.
-4. Confirm `docker compose ps` reports the app healthy and the tunnel dashboard reports Connected. Never put tunnel tokens, API keys, or passwords in GitHub. Avoid proxy logging of private `/f/…` invitation URLs.
+4. Confirm `docker compose ps` reports the app healthy and the tunnel dashboard reports Connected. Never put tunnel tokens, API keys, or passwords in GitHub. Avoid proxy logging of private `?form=…` and legacy `/f/…` invitation URLs.
 5. Open `https://admin.inflectionarchitectures.com`, sign in, and create a form. First send a test invitation to an email address you control. Verify actual inbox receipt, complete the form, then approve/publish it and confirm the homepage displays it. Hide the test response afterward.
 
 The public feed is `https://feedback.inflectionarchitectures.com/api/testimonials`. Its CORS origin defaults to `https://inflectionarchitectures.com`; keep `PUBLIC_SITE_ORIGIN` in sync with the canonical marketing domain. The React component supports `VITE_TESTIMONIALS_URL` for a different feed URL.
 
-No production secrets, clients, testimonials, invitation sends, DNS changes, or server deployments are included in this repository. SMTP acceptance is recorded as `sent`; this is not proof of inbox delivery. An unconfirmed send revokes that invitation, and admin must send a fresh invitation after resolving email settings.
+Production secrets, clients, testimonials, and database files are not stored in this repository. SMTP acceptance is recorded as `sent`; this is not proof of inbox delivery. An unconfirmed send revokes that invitation, and admin must send a fresh invitation after resolving email settings.
+
+## Ubuntu user service (existing host tunnel, no Docker required)
+
+The installation on `ubs1` uses `~/services/ia-feedback`, a Python virtual environment, and the included user systemd units. It listens only on `127.0.0.1:8091`. The existing Cloudflare tunnel must route both hostnames to `http://localhost:8091` with the HTTP Host Header override unset. The user's systemd manager must have lingering enabled for boot-time startup (`loginctl show-user jarom -p Linger`).
+
+The private `.env` sets `DATABASE_PATH` to the absolute path of `data/feedback.sqlite3` within the installation. For a new native installation, run `configure.py` in the virtual environment and update that database path before starting. The SMTP key may be left blank.
+
+```sh
+cd ~/services/ia-feedback
+mkdir -p ~/.config/systemd/user
+cp systemd/ia-feedback* ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now ia-feedback.service ia-feedback-backup.timer
+systemctl --user status ia-feedback.service
+```
+
+The sole login is `jarom`. The initial deployment password is available only in the private server file `~/services/ia-feedback/secrets/initial-password`. Set your own password from a private SSH terminal; this removes that initial file and rotates the session secret:
+
+```sh
+cd ~/services/ia-feedback
+.venv/bin/python set-password.py
+systemctl --user restart ia-feedback.service
+```
+
+For updates, copy the app files into this directory while preserving `.env`, `secrets/`, `.venv/`, and `data/`, install `requirements.txt`, then restart the user service. Startup automatically adds the nullable rating column to older databases. Take a backup before updates. Logs are available with `journalctl --user -u ia-feedback.service`; request access logging is disabled to avoid recording invitation URLs.
+
+The daily `ia-feedback-backup.timer` runs SQLite's online backup API, checks the snapshot's integrity, and retains 14 snapshots in `data/backups/`. Run it manually with `systemctl --user start ia-feedback-backup.service`. These are local recovery copies; configure encrypted off-server copies separately.
 
 ## Data and operations
+
+The following volume commands apply to Docker installations. The Ubuntu user service instead stores its database and backups under `~/services/ia-feedback/data/`.
+
 
 SQLite lives in the named `feedback-data` volume at `/data/feedback.sqlite3`; recreating the container preserves forms, invitations, and responses. Do not run `docker compose down -v` unless you intend to delete that data. This is a single-host service, not a multi-server database deployment.
 
