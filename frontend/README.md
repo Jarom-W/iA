@@ -52,3 +52,9 @@ The homepage is a short introduction. Navigation opens dedicated `/services/`, `
 `src/main.tsx` forwards the previous homepage section links to their corresponding pages. Navigation links are maintained in `src/content/site.ts`.
 
 The Approach page uses an interactive cubic curve in `src/components/Process.tsx`. Its slope stays positive, eases before Implement, and steepens after Implement, the inflection point. Hover, touch, focus, and arrow keys select a step and its details. The calculator remains interactive without a public source-code panel.
+
+## Client testimonials
+
+The homepage loads consented, published testimonials below the animated Services/Approach/Pricing section. It reads `https://feedback.inflectionarchitectures.com/api/testimonials` (override with `VITE_TESTIMONIALS_URL`). The section stays hidden for empty/unavailable feeds; no fictional testimonials are shipped.
+
+The separate admin, form, SMTP, and storage service is documented in [feedback/README.md](../feedback/README.md). The main website can remain on GitHub Pages.

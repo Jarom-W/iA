@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Client feedback data and server credentials
+feedback/.env
+feedback/*.sqlite3*
+feedback/backups/

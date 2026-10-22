@@ -1,0 +1,5 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>{{ title|default('Client feedback') }} · Inflection Architectures</title><link rel="stylesheet" href="{{ url_for('static', filename='feedback.css') }}"></head>
+<body><header><a class="brand" href="{{ url_for('dashboard') if session.get('admin') else config.PUBLIC_SITE_ORIGIN }}"><span>[i]</span> inflection architectures</a>{% if session.get('admin') %}<form method="post" action="{{ url_for('logout') }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="outline">Sign out</button></form>{% endif %}</header>
+<main>{% for category,message in get_flashed_messages(with_categories=true) %}<p class="notice {{ category }}" role="status">{{ message }}</p>{% endfor %}{% if error %}<p class="notice error" role="alert">{{ error }}</p>{% endif %}{% block content %}{% endblock %}</main>
+<footer>Inflection Architectures · <a href="mailto:jarom@inflectionarchitectures.com">jarom@inflectionarchitectures.com</a></footer></body></html>
