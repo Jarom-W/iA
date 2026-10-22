@@ -1,0 +1,8 @@
+{% extends 'base.html' %}{% block content %}<div class="narrow"><a class="back" href="{{ url_for('dashboard') }}">← All forms</a><p class="eyebrow">A thoughtful follow-up</p><h1>Create a feedback form.</h1><p>Every form includes a testimonial, public attribution, and a choice to keep feedback private. Add your own follow-up questions below.</p>
+<form method="post" class="panel stack"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+<label for="title">Form title</label><input id="title" name="title" maxlength="120" value="{{ request.form.get('title','Your experience working with Inflection Architectures') }}" required>
+<label for="service">Project or service label <small>Optional; shown with the published testimonial.</small></label><input id="service" name="service" maxlength="80" value="{{ request.form.get('service','') }}" placeholder="Website design">
+<label for="introduction">Your introduction</label><textarea id="introduction" name="introduction" maxlength="1000" rows="3">{{ request.form.get('introduction','Thank you for trusting me with your project. I’d love to hear what worked, what changed, and how I can improve.') }}</textarea>
+<label for="questions">Private follow-up questions <small>One per line, up to eight. These answers are only visible to you.</small></label><textarea id="questions" name="questions" maxlength="2500" rows="5" placeholder="What could I do better next time?">{{ request.form.get('questions','') }}</textarea>
+<p class="hint">Every submission stays private until you review it. Only testimonials with client permission can be approved for the website.</p>
+<button>Create form →</button></form></div>{% endblock %}

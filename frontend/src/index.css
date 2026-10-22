@@ -531,3 +531,19 @@ summary::-webkit-details-marker { display: none; }
 /* Keep the current page identifiable when its navigation link is not hovered. */
 .desktop-nav > a:not(.button)[aria-current="page"]::after,
 .mobile-nav a:not(.button)[aria-current="page"]::after { transform: scaleX(1); }
+
+/* Client feedback follows the animated service navigation. */
+.testimonials-section { background: var(--surface); }
+.testimonials-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; }
+.testimonials-heading > p { max-width: 340px; }
+.testimonial-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 22px; margin-top: 44px; }
+.testimonial-card { display: flex; flex-direction: column; min-width: 0; margin: 0; padding: 30px; border: 1px solid var(--line); background: var(--paper); }
+.testimonial-card > svg { color: var(--accent); margin-bottom: 24px; }
+.testimonial-service { margin-bottom: 16px; }
+.testimonial-card blockquote { margin: 0 0 30px; max-width: 75ch; }
+.testimonial-card blockquote p { color: var(--ink); font-size: 17px; line-height: 1.8; white-space: pre-line; overflow-wrap: anywhere; }
+.testimonial-card figcaption { display: flex; align-items: center; gap: 14px; margin-top: auto; padding-top: 24px; border-top: 1px solid var(--line); }
+.testimonial-initial { display: grid; place-items: center; flex-shrink: 0; width: 42px; height: 42px; border: 1px solid var(--accent); color: var(--accent); font-family: var(--mono); text-transform: uppercase; }
+.testimonial-card figcaption strong { font-size: 14px; font-weight: 500; overflow-wrap: anywhere; }
+.testimonial-attribution { display: block; margin-top: 5px; color: var(--ink-soft); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .testimonials-heading { align-items: flex-start; flex-direction: column; gap: 20px; } .testimonial-grid { grid-template-columns: 1fr; gap: 16px; margin-top: 30px; } .testimonial-card { padding: 24px; } }
