@@ -1,0 +1,11 @@
+[Unit]
+Description=Deliver client feedback notifications
+After=ia-feedback.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/services/ia-feedback
+EnvironmentFile=%h/services/ia-feedback/.env
+ExecStart=%h/services/ia-feedback/.venv/bin/python notifications.py
+UMask=0077
+NoNewPrivileges=true

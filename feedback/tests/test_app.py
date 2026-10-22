@@ -13,7 +13,7 @@ ADMIN = "https://admin.example.test"
 PUBLIC = "https://feedback.example.test"
 
 
-class FeedbackTests(unittest.TestCase):
+class FeedbackTestCase(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.database = str(Path(self.temp.name) / "test.sqlite3")
@@ -60,6 +60,8 @@ class FeedbackTests(unittest.TestCase):
         with closing(sqlite3.connect(self.database)) as db, db:
             return db.execute("SELECT id FROM responses").fetchone()[0]
 
+
+class FeedbackTests(FeedbackTestCase):
     def test_approval_flow_and_public_field_allowlist(self):
         self.login()
         token = self.invite(self.create_form())

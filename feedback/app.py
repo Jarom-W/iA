@@ -34,6 +34,7 @@ def create_app(config=None):
         SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax",
         PERMANENT_SESSION_LIFETIME=timedelta(hours=8),
         MAX_CONTENT_LENGTH=65536, MAX_FORM_PARTS=50,
+        NTFY_URL=os.getenv("NTFY_URL", ""), NTFY_TOPIC=os.getenv("NTFY_TOPIC", ""),
         SMTP_HOST=os.getenv("SMTP_HOST", ""), SMTP_PORT=int(os.getenv("SMTP_PORT", "587")),
         SMTP_USERNAME=os.getenv("SMTP_USERNAME", ""), SMTP_PASSWORD=os.getenv("SMTP_PASSWORD", ""),
         SMTP_FROM=os.getenv("SMTP_FROM", "Inflection Architectures <jarom@inflectionarchitectures.com>"),
@@ -319,11 +320,14 @@ def create_app(config=None):
                 consent = request.form.get("consent") == "yes"
                 status = "pending" if consent else "private"
                 now = int(time.time())
+                response_id = secrets.token_hex(12)
                 with db():
                     db().execute("BEGIN IMMEDIATE")
                     # Recheck expiry/revocation inside the write transaction.
                     current = invite_record(token)
-                    db().execute("INSERT INTO responses (id,invitation_id,name,company,role,quote,answers,consent,status,created_at,published_at,rating) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (secrets.token_hex(12), current["id"], name, company, role, quote, json.dumps(answers), int(consent), status, now, None, rating))
+                    db().execute("INSERT INTO responses (id,invitation_id,name,company,role,quote,answers,consent,status,created_at,published_at,rating) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (response_id, current["id"], name, company, role, quote, json.dumps(answers), int(consent), status, now, None, rating))
+                    if app.config["NTFY_URL"] and app.config["NTFY_TOPIC"]:
+                        db().execute("INSERT INTO notification_outbox (response_id) VALUES (?)", (response_id,))
                 return redirect(url_for("feedback", token=token), code=303)
             except ValueError as exc:
                 error = str(exc)

@@ -19,3 +19,9 @@ CREATE TABLE IF NOT EXISTS responses (
  rating INTEGER CHECK(rating BETWEEN 1 AND 5)
 );
 CREATE TABLE IF NOT EXISTS login_attempts (created_at INTEGER NOT NULL);
+
+CREATE TABLE IF NOT EXISTS notification_outbox (
+ response_id TEXT PRIMARY KEY REFERENCES responses(id) ON DELETE CASCADE,
+ attempts INTEGER NOT NULL DEFAULT 0, next_attempt_at INTEGER NOT NULL DEFAULT 0,
+ sent_at INTEGER
+);

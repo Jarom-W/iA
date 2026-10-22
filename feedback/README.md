@@ -72,6 +72,20 @@ For updates, copy the app files into this directory while preserving `.env`, `se
 
 The daily `ia-feedback-backup.timer` runs SQLite's online backup API, checks the snapshot's integrity, and retains 14 snapshots in `data/backups/`. Run it manually with `systemctl --user start ia-feedback-backup.service`. These are local recovery copies; configure encrypted off-server copies separately.
 
+## Submission notifications (ntfy)
+
+On the Ubuntu installation, `configure-notifications.py` privately prompts for an ntfy access token with write access to `client-feedback`, verifies it with a setup notification, saves it in `.env`, and enables the notification timer:
+
+```sh
+ssh -t jarom@192.168.0.63 'cd ~/services/ia-feedback && .venv/bin/python configure-notifications.py'
+```
+
+Subscribe to **client-feedback** on **https://notify.inflectionarchitectures.com** in the ntfy app, using an account with read access. These are ntfy push notifications, not carrier SMS messages. The service publishes locally to `http://127.0.0.1:8085`; the phone subscribes through the existing HTTPS tunnel.
+
+Every new submission, including private feedback, queues one notification in the same database transaction as its response. A user timer checks every 15 seconds. The alert contains a generic message and a link to the response in the authenticated admin portal, without names, quotes, email addresses, or private answers. Failed deliveries retry with increasing delays up to one hour; responses remain saved regardless of delivery status. Retries after an ambiguous network failure can produce duplicate notifications. Deleting a response or its form cancels queued notifications, but cannot retract already delivered messages. Existing submissions are not backfilled.
+
+For other installations set `NTFY_URL`, `NTFY_TOPIC`, and `NTFY_TOKEN` and schedule `python notifications.py` using the same environment and database as the web service. Check the Ubuntu timer with `systemctl --user status ia-feedback-notify.timer` and its logs with `journalctl --user -u ia-feedback-notify.service`.
+
 ## Data and operations
 
 The following volume commands apply to Docker installations. The Ubuntu user service instead stores its database and backups under `~/services/ia-feedback/data/`.
