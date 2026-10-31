@@ -18,6 +18,8 @@ from zoneinfo import ZoneInfo
 from flask import Flask, abort, flash, g, jsonify, redirect, render_template, request, send_file, session, url_for
 from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
+from ia_auth import auth_settings, init_auth
+from reports import groups_for, pdf_report
 
 COLORS = ('green', 'teal', 'lilac', 'pink', 'blue')
 KINDS = {'call': 'Call', 'focus': 'Focus time', 'off': 'Time off', 'deadline': 'Deadline'}
@@ -39,9 +41,10 @@ def create_app(config=None):
         SESSION_COOKIE_SAMESITE='Lax', PERMANENT_SESSION_LIFETIME=timedelta(hours=12),
         MAX_CONTENT_LENGTH=11 * 1024 * 1024, MAX_FORM_MEMORY_SIZE=128 * 1024,
     )
+    app.config.update(auth_settings())
     if config:
         app.config.update(config)
-    if len(app.config['SECRET_KEY'] or '') < 32 or not app.config['ADMIN_PASSWORD_HASH']:
+    if len(app.config['SECRET_KEY'] or '') < 32 or (app.config['AUTH_MODE'] == 'legacy' and not app.config['ADMIN_PASSWORD_HASH']):
         raise RuntimeError('Set TIME_SECRET_KEY (32+ random characters) and ADMIN_PASSWORD_HASH.')
     origin = urlsplit(app.config['ORIGIN'])
     if not origin.hostname or origin.path or origin.query or origin.fragment or origin.username or origin.scheme not in ('http', 'https'):
@@ -107,7 +110,20 @@ def create_app(config=None):
                 abort(403)
             if not hmac.compare_digest(request.form.get('csrf', '').encode(), session.get('csrf', 'invalid').encode()):
                 abort(403, 'Your session expired. Reload this page and try again.')
-        if request.endpoint not in ('login', 'static') and not session.get('owner'):
+        auth = app.extensions.get('platform_auth')
+        if auth and request.endpoint not in ('login', 'static', 'logout') and not (request.endpoint or '').startswith('platform_auth.'):
+            permissions = ['time:read']
+            if request.method == 'POST':
+                permissions.append('time:write')
+            if request.endpoint == 'download_document':
+                permissions.append('time:documents:read')
+            if request.endpoint == 'upload_document':
+                permissions.append('time:documents:write')
+            # Edit forms contain private data too; require edit permission before rendering.
+            if request.endpoint in ('client_form', 'event_form', 'journal'):
+                permissions.append('time:write')
+            return auth.require(*permissions)
+        if not auth and request.endpoint not in ('login', 'static') and not session.get('owner'):
             return redirect(url_for('login'))
 
     @app.after_request
@@ -158,14 +174,20 @@ def create_app(config=None):
     def open_entry():
         return db().execute("SELECT e.*, c.name, c.color FROM entries e JOIN clients c ON c.id=e.client_id WHERE e.status IN ('running','draft')").fetchone()
 
-    def entry_rows(client_id=None, start=None, end=None):
+    def entry_rows(client_id=None, start=None, end=None, overlap=False):
         clauses, params = ["e.status='complete'"], []
-        for clause, value in [('e.client_id=?', client_id), ('e.started_at>=?', start), ('e.started_at<?', end)]:
+        for clause, value in [('e.client_id=?', client_id), ('e.ended_at>?' if overlap else 'e.started_at>=?', start), ('e.started_at<?', end)]:
             if value is not None:
                 clauses.append(clause)
                 params.append(value)
         rows = db().execute('SELECT e.*, c.name, c.color FROM entries e JOIN clients c ON c.id=e.client_id WHERE ' + ' AND '.join(clauses) + ' ORDER BY e.started_at DESC', params).fetchall()
-        return [dict(row, seconds=row['ended_at'] - row['started_at'], amount=earnings(row['ended_at'] - row['started_at'], row['rate_cents'])) for row in rows]
+        result = []
+        for row in rows:
+            begin = max(row['started_at'], start) if overlap and start is not None else row['started_at']
+            finish = min(row['ended_at'], end) if overlap and end is not None else row['ended_at']
+            result.append(dict(row, started_at=begin, ended_at=finish, partial=(begin != row['started_at'] or finish != row['ended_at']),
+                seconds=finish-begin, amount=earnings(finish-begin, row['rate_cents'])))
+        return result
 
     @app.get('/health')
     def health():
@@ -174,6 +196,10 @@ def create_app(config=None):
 
     @app.route('/login', methods=['GET', 'POST'])
     def login():
+        if app.config['AUTH_MODE'] == 'oidc':
+            if request.method == 'POST':
+                abort(405)
+            return render_template('login.html', title='Sign in')
         error = None
         if request.method == 'POST':
             with db():
@@ -195,6 +221,8 @@ def create_app(config=None):
 
     @app.post('/logout')
     def logout():
+        if auth := app.extensions.get('platform_auth'):
+            return auth.logout()
         session.clear()
         return redirect(url_for('login'))
 
@@ -326,38 +354,60 @@ def create_app(config=None):
         document = one('SELECT * FROM documents WHERE id=?', (document_id,))
         return send_file(io.BytesIO(document['content']), mimetype='application/octet-stream', as_attachment=True, download_name=document['name'])
 
-    @app.get('/work-log')
-    def work_log():
-        selected = request.args.get('client') or None
-        return render_template('work-log.html', title='Work log', entries=entry_rows(selected), active=open_entry(), selected=selected,
-            clients=db().execute('SELECT id,name FROM clients ORDER BY name').fetchall())
-
-    @app.get('/clients/<client_id>/report')
-    def report(client_id):
-        client = one('SELECT * FROM clients WHERE id=?', (client_id,))
+    def report_range():
         start_text, end_text = request.args.get('from', ''), request.args.get('to', '')
         start = end = None
         try:
             if start_text:
                 start = parse_local(start_text + 'T00:00')
             if end_text:
-                end = int((datetime.strptime(end_text, '%Y-%m-%d').replace(tzinfo=tz) + timedelta(days=1)).timestamp())
+                day = datetime.strptime(end_text, '%Y-%m-%d')
+                if not 2000 <= day.year <= 2100:
+                    raise ValueError()
+                end = int((day.replace(tzinfo=tz) + timedelta(days=1)).timestamp())
             if start is not None and end is not None and end <= start:
-                raise ValueError('Choose an end date on or after the start date.')
+                raise ValueError()
         except ValueError:
-            abort(400, 'Choose a valid report date range.')
-        rows = entry_rows(client_id, start, end)
+            abort(400, 'Choose a valid report date range, with the end on or after the start.')
+        return start_text, end_text, start, end
+
+    @app.get('/work-log')
+    def work_log():
+        selected = request.args.get('client') or None
+        if selected:
+            one('SELECT id FROM clients WHERE id=?', (selected,))
+        start_text, end_text, start, end = report_range()
+        rows = entry_rows(selected, start, end, overlap=True)
+        current = local(now()).date()
+        return render_template('work-log.html', title='Work log', entries=rows, active=open_entry(), selected=selected,
+            clients=db().execute('SELECT id,name FROM clients ORDER BY name').fetchall(),
+            start_text=start_text, end_text=end_text, total_seconds=sum(r['seconds'] for r in rows), total_amount=sum(r['amount'] for r in rows),
+            month_start=current.replace(day=1).isoformat(), today=current.isoformat())
+
+    @app.get('/work-log/report')
+    @app.get('/clients/<client_id>/report')
+    def report(client_id=None):
+        selected = client_id or request.args.get('client') or None
+        client = one('SELECT * FROM clients WHERE id=?', (selected,)) if selected else None
+        start_text, end_text, start, end = report_range()
+        rows = entry_rows(selected, start, end, overlap=True)
+        if request.args.get('format') == 'pdf':
+            return send_file(pdf_report(rows, app.config['TIMEZONE'], app.config['CURRENCY'], start_text, end_text, client['name'] if client else None),
+                mimetype='application/pdf', as_attachment=True, download_name=f'work-report-{start_text or "all"}-to-{end_text or "latest"}.pdf')
         if request.args.get('format') == 'csv':
             output = io.StringIO(newline='')
             writer = csv.writer(output)
-            writer.writerow(['Client', 'Start (' + app.config['TIMEZONE'] + ')', 'End', 'Hours', 'Hourly rate (' + app.config['CURRENCY'] + ')', 'Estimated earnings', 'Summary', 'Deliverables', 'Next steps'])
+            writer.writerow(['Client', 'Start (' + app.config['TIMEZONE'] + ')', 'End', 'Hours', 'Hourly rate (' + app.config['CURRENCY'] + ')', 'Estimated earnings', 'Summary', 'Deliverables', 'Next steps', 'Session reference', 'Partial session'])
             def safe(value):
                 value = str(value)
                 return "'" + value if value.lstrip().startswith(('=', '+', '-', '@')) or value.startswith(('\t', '\r', '\n')) else value
-            for row in rows:
-                writer.writerow([safe(client['name']), local(row['started_at']).isoformat(), local(row['ended_at']).isoformat(), f"{row['seconds']/3600:.4f}", f"{row['rate_cents']/100:.2f}", f"{row['amount']/100:.2f}", safe(row['summary']), safe(row['deliverables']), safe(row['next_steps'])])
+            for group in groups_for(rows):
+                for row in group['entries']:
+                    writer.writerow([safe(row['name']), local(row['started_at']).isoformat(), local(row['ended_at']).isoformat(), f"{row['seconds']/3600:.4f}", f"{row['rate_cents']/100:.2f}", f"{row['amount']/100:.2f}", safe(row['summary']), safe(row['deliverables']), safe(row['next_steps']), row['id'], 'yes' if row['partial'] else 'no'])
+                writer.writerow([safe(group['name']) + ' subtotal', '', '', f"{group['seconds']/3600:.4f}", '', f"{group['amount']/100:.2f}"])
+            writer.writerow(['Grand total', '', '', f"{sum(r['seconds'] for r in rows)/3600:.4f}", '', f"{sum(r['amount'] for r in rows)/100:.2f}"])
             return send_file(io.BytesIO(output.getvalue().encode('utf-8-sig')), mimetype='text/csv', as_attachment=True, download_name='client-work-report.csv')
-        return render_template('report.html', title='Client work report', client=client, entries=rows,
+        return render_template('report.html', title='Client work report', client=client, selected=selected, groups=groups_for(rows), entries=rows,
             total_seconds=sum(row['seconds'] for row in rows), total_amount=sum(row['amount'] for row in rows), start_text=start_text, end_text=end_text)
 
     @app.get('/calendar')
@@ -419,6 +469,8 @@ def create_app(config=None):
         flash('Event removed.', 'success')
         return redirect(url_for('calendar_view', month=local(event['starts_at']).strftime('%Y-%m')))
 
+    @app.errorhandler(401)
+    @app.errorhandler(503)
     @app.errorhandler(400)
     @app.errorhandler(403)
     @app.errorhandler(404)
@@ -428,4 +480,5 @@ def create_app(config=None):
     def error_page(error):
         return render_template('error.html', title='Request not completed', error=error.description), error.code
 
+    init_auth(app, app.config['ORIGIN'], '/', 'owner')
     return app

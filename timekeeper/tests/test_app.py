@@ -13,6 +13,7 @@ from zoneinfo import ZoneInfo
 
 from werkzeug.security import generate_password_hash
 from app import create_app, earnings
+from pypdf import PdfReader
 
 ORIGIN = 'https://time.example.test'
 START = 1793440800
@@ -222,6 +223,44 @@ class WorkspaceTests(unittest.TestCase):
         self.assertNotIn('FORMULA', self.get(f'/clients/{other}/report').text)
         self.assertNotIn('FORMULA', self.get(f'/clients/{client}/report?from=2027-01-01').text)
         self.assertEqual(self.get(f'/clients/{client}/report?from=2027-02-01&to=2027-01-01').status_code, 400)
+
+    def test_grouped_pdf_has_grand_totals_and_excludes_private_data(self):
+        self.login()
+        alpha = self.make_client('Alpha Studio', '100')
+        beta = self.make_client('Beta Studio', '200')
+        for client, start in [(alpha, START), (beta, START + 7200)]:
+            entry = self.start(client, start)
+            self.stop(entry, start + 3600)
+            self.save_journal(entry)
+        response = self.get('/work-log/report?format=pdf')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.mimetype, 'application/pdf')
+        text = '\n'.join(page.extract_text() for page in PdfReader(io.BytesIO(response.data)).pages)
+        for expected in ['Grand total', '2.0000 hours', 'USD 300.00', 'Alpha Studio', 'Beta Studio', 'Client subtotal', 'Shipped the customer dashboard.', 'Session reference:']:
+            self.assertIn(expected, text)
+        self.assertNotIn('Internal margin notes', text)
+        filtered = self.get(f'/work-log/report?format=pdf&client={alpha}')
+        filtered_text = '\n'.join(page.extract_text() for page in PdfReader(io.BytesIO(filtered.data)).pages)
+        self.assertNotIn('Beta Studio', filtered_text)
+        self.assertIn('1.0000 hours', filtered_text)
+        self.assertEqual(self.get('/work-log?from=2027-02-01&to=2027-01-01').status_code, 400)
+
+    def test_report_prorates_sessions_crossing_selected_dates(self):
+        self.login()
+        tz = ZoneInfo('America/Denver')
+        start = int(datetime(2026, 11, 1, 23, 0, tzinfo=tz).timestamp())
+        end = int(datetime(2026, 11, 2, 1, 0, tzinfo=tz).timestamp())
+        entry = self.start(self.make_client(rate='100'), start)
+        self.stop(entry, end)
+        self.save_journal(entry)
+        response = self.get('/work-log/report?format=pdf&from=2026-11-02&to=2026-11-02')
+        text = '\n'.join(page.extract_text() for page in PdfReader(io.BytesIO(response.data)).pages)
+        self.assertIn('1.0000 hours', text)
+        self.assertIn('USD 100.00', text)
+        self.assertIn('Partial session:', text)
+        self.assertIn('1.0000 hours', self.get('/work-log?from=2026-11-02&to=2026-11-02').text)
+        csv_report = self.get('/work-log/report?format=csv&from=2026-11-02&to=2026-11-02').text
+        self.assertIn('Grand total,,,1.0000,,100.00', csv_report)
 
     def make_event(self, **overrides):
         data = dict(title='Planning call', kind='call', starts_at='2026-11-03T09:00', ends_at='2026-11-03T10:00', notes='Discuss next steps')

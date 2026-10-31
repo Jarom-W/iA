@@ -1,6 +1,8 @@
 services:
   feedback:
-    build: .
+    build:
+      context: ..
+      dockerfile: feedback/Dockerfile
     restart: unless-stopped
     env_file: .env
     ports:

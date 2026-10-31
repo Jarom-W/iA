@@ -6,3 +6,7 @@
 .table-scroll{position:relative}
 
 h1,h2,h3,p,.agenda-copy strong{overflow-wrap:anywhere}@media(max-width:640px){.table-scroll:after{content:'Swipe for time and earnings →';display:block;color:var(--muted);font-size:9px;margin-top:12px}}
+
+/* Compact application headings, without marketing hero styling. */
+h1,.page-heading h1,.login-layout h1{font-size:30px;line-height:1.2;letter-spacing:-.035em;font-weight:500}h1 em{font-style:normal;color:inherit}.owner{margin-top:auto}.page-heading{align-items:center}.page-heading .eyebrow{margin-bottom:10px}.login-layout{gap:60px}@media(max-width:640px){h1,.page-heading h1,.login-layout h1{font-size:27px}}
+.report-filter select{min-width:160px}.report-client{margin-top:32px}.report-client>.section-top{margin-bottom:16px;flex-wrap:wrap}.report-client>.section-top .mono{font-size:12px}.metric-grid .stat-card>small{display:block;margin-top:8px;color:var(--muted)}.panel>.section-top>.mono{font-size:12px;line-height:1.8}@media(max-width:640px){.panel>.section-top{flex-wrap:wrap}.report-filter>label{min-width:130px}}
