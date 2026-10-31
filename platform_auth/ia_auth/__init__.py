@@ -146,7 +146,9 @@ class PlatformAuth:
             session[self.flag] = True  # UI compatibility only; never used for OIDC authorization.
             session.permanent = True
             return redirect('/admin/access' if self.flag == 'admin' and 'platform:manage' in user['permissions'] else self.home)
-        except (requests.RequestException, ValueError, KeyError, OAuthError, JoseError):
+        except (requests.RequestException, ValueError, KeyError, OAuthError, JoseError) as exc:
+            # Exception messages may contain provider responses; log only the class.
+            self.app.logger.warning('OIDC callback rejected: %s', type(exc).__name__)
             session.clear()
             abort(400, 'Sign-in could not be verified. Start a new sign-in request.')
 

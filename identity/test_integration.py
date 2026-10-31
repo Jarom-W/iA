@@ -79,6 +79,14 @@ def main():
         else:
             config.update(ADMIN_ORIGIN='http://127.0.0.1:8102',FEEDBACK_ORIGIN='http://localhost:8102',PUBLIC_SITE_ORIGIN='http://localhost:8103')
         apps[name] = load_app('integration_' + name,directory)(config)
+        auth_client = apps[name].extensions['platform_auth']
+        original_post = auth_client.post_provider
+        def diagnostic_post(endpoint, data, original=original_post, client=auth_client):
+            result = original(endpoint, data)
+            if endpoint == 'introspection_endpoint':
+                print('Introspection shape:', {'active':result.get('active'), 'has_sub':bool(result.get('sub')), 'client_matches':result.get('client_id')==client.client_id, 'issuer_matches':result.get('iss')==client.issuer, 'permissions_type':type(result.get('permissions')).__name__}, flush=True)
+            return result
+        auth_client.post_provider = diagnostic_post
         server = make_server('127.0.0.1',port,apps[name],threaded=True,request_handler=QuietHandler)
         threading.Thread(target=server.serve_forever,daemon=True).start()
         servers.append(server)
