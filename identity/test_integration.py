@@ -22,6 +22,7 @@ def load_app(name, directory):
     sys.path.insert(0, str(ROOT / directory))
     spec = importlib.util.spec_from_file_location(name, ROOT / directory / 'app.py')
     module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module  # Flask resolves templates relative to this module.
     spec.loader.exec_module(module)
     return module.create_app
 

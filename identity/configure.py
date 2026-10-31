@@ -16,6 +16,8 @@ def realm_config(origin, app_origins, owner_id, owner_password, client_secrets, 
             'secret': client_secrets[name], 'standardFlowEnabled': True, 'implicitFlowEnabled': False,
             'directAccessGrantsEnabled': False, 'serviceAccountsEnabled': False, 'fullScopeAllowed': False,
             'redirectUris': [redirect + '/auth/callback'], 'webOrigins': [], 'defaultClientScopes': ['platform-permissions'],
+            'protocolMappers': [{'name':'application-audience', 'protocol':'openid-connect', 'protocolMapper':'oidc-audience-mapper',
+                'config': {'included.client.audience':name, 'access.token.claim':'true', 'id.token.claim':'false', 'introspection.token.claim':'true'}}],
             'attributes': {'pkce.code.challenge.method': 'S256', 'post.logout.redirect.uris': redirect + ('/admin/login' if name == 'ia-admin' else '/login')}}
     clients = [client('ia-time', app_origins['time'], []), client('ia-admin', app_origins['admin'], [])]
     # Vault remains disabled until its actual implementation and exact callback are known.
