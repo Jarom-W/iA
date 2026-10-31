@@ -42,6 +42,8 @@ def realm_config(origin, app_origins, owner_id, owner_password, client_secrets, 
         'roles': {'realm': [{'name': name, 'description': name} for name in PERMISSIONS]},
         'clientScopes': [{'name': 'platform-permissions', 'protocol': 'openid-connect', 'attributes': {'include.in.token.scope': 'true'},
             'protocolMappers': [
+                {'name':'subject', 'protocol':'openid-connect', 'protocolMapper':'oidc-sub-mapper',
+                 'config': {'access.token.claim':'true', 'introspection.token.claim':'true'}},
                 {'name': 'permissions', 'protocol': 'openid-connect', 'protocolMapper': 'oidc-usermodel-realm-role-mapper',
                  'config': dict(claims, **{'claim.name': 'permissions', 'multivalued': 'true'})},
                 {'name': 'username', 'protocol': 'openid-connect', 'protocolMapper': 'oidc-usermodel-property-mapper',
