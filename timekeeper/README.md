@@ -32,7 +32,7 @@ systemctl --user daemon-reload
 systemctl --user enable --now ia-time.service ia-time-backup.timer
 ```
 
-The helper privately asks for your owner login and password and generates a unique session secret. To use your existing login without choosing a second password, copy only `ADMIN_USERNAME` and `ADMIN_PASSWORD_HASH` from the feedback service's private `.env` into this service's `.env` locally. Use a separate `TIME_SECRET_KEY`. Password changes are independent between services; change both hashes to keep them in sync. Hashes must be single-quoted to preserve dollar signs. Restart the service after changes and rotate `TIME_SECRET_KEY` to invalidate existing time-workspace sessions. Never commit `.env`, database files, or credentials.
+The helper privately asks for your owner login and password and generates a unique session secret. To use your existing login without choosing a second password, copy only `ADMIN_USERNAME` and `ADMIN_PASSWORD_HASH` from the feedback service's private `.env` into this service's `.env` locally. Use a separate `TIME_SECRET_KEY`. Password changes are independent between services; change both hashes to keep them in sync. Hashes must be single-quoted to preserve dollar signs. To change the workspace password interactively, run `.venv/bin/python set-password.py` in the installation directory; it also rotates `TIME_SECRET_KEY` to invalidate existing time-workspace sessions. Restart `ia-time.service` afterward. Never commit `.env`, database files, or credentials.
 
 The included user service listens on **127.0.0.1:8094** and loads `.env`. Enable user lingering if not already enabled (`loginctl show-user "$USER" -p Linger`) so the service starts at boot and stays running after logout.
 
@@ -71,3 +71,7 @@ PYTHONPATH=timekeeper /path/to/venv/bin/python -m unittest discover -s timekeepe
 CI runs the workspace tests, builds its container, and checks startup under a read-only root filesystem. Tests cover authentication, host isolation, CSRF, login throttling, simultaneous clock-ins, timer persistence, idempotent clock-out, captured rates, draft journals, private reports, formula-safe CSV, private uploads, calendar edits, and DST boundaries. Browser verification uses a temporary database and fictional clients; production has no demo records.
 
 Styles use the website's actual logo, Helvetica/Arial typography, black surfaces, and #81f268 primary accent, with teal/lilac/pink/blue calendar categories. Color is accompanied by text labels. Controls support keyboard focus, reduced motion, mobile layouts, and print reports.
+
+## Current server installation
+
+The workspace is installed at `~/services/ia-time` on `ubs1`, listening on loopback port 8094 with `ia-time.service` and `ia-time-backup.timer` enabled. Its owner login/hash was copied privately from the existing feedback installation, with a separate session secret. A local health check and initial backup succeeded. The new Cloudflare hostname route must be configured before public HTTPS access is available.

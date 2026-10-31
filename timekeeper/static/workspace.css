@@ -4,3 +4,5 @@
 
 .mobile-signout{display:none}@media(max-width:640px){.mobile-signout{display:block}.topbar{gap:8px}.topbar .signout{font-size:10px;padding:6px}}
 .table-scroll{position:relative}
+
+h1,h2,h3,p,.agenda-copy strong{overflow-wrap:anywhere}@media(max-width:640px){.table-scroll:after{content:'Swipe for time and earnings →';display:block;color:var(--muted);font-size:9px;margin-top:12px}}

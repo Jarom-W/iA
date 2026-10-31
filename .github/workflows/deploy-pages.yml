@@ -93,6 +93,21 @@ jobs:
           app=create_app({"TESTING":True,"SECRET_KEY":"ci-only-not-a-production-secret-value","ADMIN_PASSWORD_HASH":generate_password_hash("ci-only"),"DATABASE_PATH":"/tmp/time-smoke.sqlite3"});
           assert app.test_client().get("/health").status_code == 200'
 
+      - name: Smoke-test the production server with two workers
+        run: |
+          TIME_SMOKE_PASSWORD_HASH="$(python -c 'from werkzeug.security import generate_password_hash; print(generate_password_hash("ci-only"))')"
+          docker run -d --name ia-time-server --read-only --tmpfs /tmp --tmpfs /data:uid=10001,gid=10001,mode=0700 \
+            -e TIME_SECRET_KEY=ci-only-not-a-production-secret-value \
+            -e ADMIN_PASSWORD_HASH="$TIME_SMOKE_PASSWORD_HASH" ia-time:ci
+          trap 'docker logs ia-time-server; docker rm -f ia-time-server' EXIT
+          for attempt in $(seq 1 20); do
+            if docker exec ia-time-server python -c 'import urllib.request; assert urllib.request.urlopen("http://127.0.0.1:8000/health").status == 200'; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+
   deploy:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: [build, feedback-test, timekeeper-test]
