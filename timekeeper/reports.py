@@ -1,6 +1,6 @@
 """Client-facing PDF reports. Private notes and documents are never inputs to the PDF."""
 from collections import OrderedDict
-from datetime import datetime, timezone
+from datetime import datetime
 import io
 from pathlib import Path
 from xml.sax.saxutils import escape
@@ -8,12 +8,11 @@ from zoneinfo import ZoneInfo
 
 import reportlab
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_RIGHT
-from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 
 
 def groups_for(entries):
@@ -32,9 +31,9 @@ def pdf_report(entries, zone, currency, start_text='', end_text='', client_name=
         pdfmetrics.registerFont(TTFont('IAReport', str(fonts / 'Vera.ttf')))
         pdfmetrics.registerFont(TTFont('IAReportBold', str(fonts / 'VeraBd.ttf')))
     tz = ZoneInfo(zone)
-    styles = getSampleStyleSheet()
     normal = ParagraphStyle('Body', fontName='IAReport', fontSize=9, leading=14, spaceAfter=9, textColor=colors.HexColor('#202820'))
     small = ParagraphStyle('Small', parent=normal, fontSize=8, leading=12, textColor=colors.HexColor('#556055'))
+    label = ParagraphStyle('Label', parent=small, keepWithNext=True)
     heading = ParagraphStyle('Heading', parent=normal, fontName='IAReportBold', fontSize=17, leading=22, spaceBefore=17, spaceAfter=10, keepWithNext=True)
     subheading = ParagraphStyle('Subheading', parent=normal, fontName='IAReportBold', fontSize=11, leading=16, spaceBefore=12, keepWithNext=True)
     def p(text, style=normal):
@@ -74,12 +73,12 @@ def pdf_report(entries, zone, currency, start_text='', end_text='', client_name=
                 last_day = day
             start = datetime.fromtimestamp(entry['started_at'], tz).strftime('%Y-%m-%d %H:%M:%S %Z')
             end = datetime.fromtimestamp(entry['ended_at'], tz).strftime('%Y-%m-%d %H:%M:%S %Z')
-            story.extend([p(entry['summary'], subheading), p(f"{start} → {end}\n{elapsed(entry['seconds'])} | {amount(entry['rate_cents'])}/hour | {amount(entry['amount'])} estimated\nSession reference: {entry['id']}", small)])
+            story.extend([p(entry['summary'], subheading), p(f"{start} to {end}\n{elapsed(entry['seconds'])} | {amount(entry['rate_cents'])}/hour | {amount(entry['amount'])} estimated\nSession reference: {entry['id']}", small)])
             if entry.get('partial'):
                 story.append(p('Partial session: only the time overlapping the selected period is counted.', small))
-            story.extend([p('Work completed & deliverables', small), p(entry['deliverables'])])
+            story.extend([p('Work completed & deliverables', label), p(entry['deliverables'])])
             if entry['next_steps']:
-                story.extend([p('Next steps', small), p(entry['next_steps'])])
+                story.extend([p('Next steps', label), p(entry['next_steps'])])
             story.append(Spacer(1,10))
     def footer(canvas, _doc):
         canvas.saveState()

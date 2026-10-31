@@ -100,6 +100,27 @@ class AuthenticationTests(unittest.TestCase):
         self.assertEqual(result.status_code,400)
         with self.client.session_transaction(base_url='https://time.example.test') as s:self.assertNotIn('sso_sid',s)
 
+    def test_signed_identity_claims_and_signature_validation(self):
+        from joserfc import jwt
+        from joserfc.jwk import RSAKey
+        from joserfc.errors import JoseError
+        key = RSAKey.generate_key(2048, parameters={'kid':'test-key'})
+        other = RSAKey.generate_key(2048, parameters={'kid':'test-key'})
+        now = int(time.time())
+        claims = dict(iss=self.auth.issuer, sub='owner-sub', aud='ia-time',
+                      exp=now+300, iat=now, nonce='expected-nonce')
+        metadata = {'issuer':self.auth.issuer, 'id_token_signing_alg_values_supported':['RS256']}
+        def parse(values, signing_key=key):
+            token = jwt.encode({'alg':'RS256', 'kid':'test-key'}, values, signing_key)
+            return self.auth.remote.parse_id_token({'id_token':token, 'access_token':'access'}, nonce='expected-nonce', leeway=0)
+        with self.app.test_request_context(), patch.object(self.auth.remote,'load_server_metadata',return_value=metadata), patch.object(self.auth.remote,'fetch_jwk_set',return_value={'keys':[key.as_dict(private=False)]}):
+            self.assertEqual(parse(claims)['sub'],'owner-sub')
+            for change in [{'iss':'https://attacker.test'}, {'aud':'other-client'}, {'nonce':'wrong'}, {'nonce':None}, {'exp':now-30}]:
+                with self.subTest(change=change), self.assertRaises(JoseError):
+                    parse(dict(claims, **change))
+            with self.assertRaises(JoseError):
+                parse(claims, other)
+
     def test_auth_routes_host_and_csrf(self):
         self.assertEqual(self.client.get('/auth/login',base_url='https://other.example.test').status_code,404)
         self.assertEqual(self.client.post('/auth/logout',base_url='https://time.example.test').status_code,403)
