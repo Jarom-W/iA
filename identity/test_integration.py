@@ -37,6 +37,11 @@ def csrf(response):
 def signin(browser, origin, username, password):
     response = browser.get(origin + '/auth/login', timeout=15)
     if '/auth' in urlparse(response.url).path and 'kc-form-login' in response.text:
+        # Requests lacks browsers' secure-context exception for loopback HTTP.
+        # This fixture runs only against the isolated local CI provider.
+        for cookie in browser.cookies:
+            if cookie.domain in ('127.0.0.1', 'localhost.local'):
+                cookie.secure = False
         action = html.unescape(re.search(r'<form[^>]+id="kc-form-login"[^>]+action="([^"]+)"', response.text)[1])
         response = browser.post(action, data={'username': username, 'password': password, 'credentialId': ''}, timeout=20)
     return response
