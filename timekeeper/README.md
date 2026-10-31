@@ -7,7 +7,7 @@ Private CRM, time tracking, client work reports, documents, and calendar at `htt
 1. Add a client, contact information, hourly rate, color, and internal relationship notes.
 2. Choose an active client on Overview and clock in. The server stores the start timestamp and a snapshot of that client's rate. Refreshing, navigating, signing out, or closing the browser does not stop the timer.
 3. Clock out to stop time immediately. Fill in the required session summary and work completed/deliverables, with optional next steps and private notes. The session remains an unfinished draft until saved. Only one running or unfinished session is allowed, including across tabs and workers.
-4. Open a client's report to select a date range, print/save PDF, or download CSV. Reports include completed sessions only, use the workspace timezone, and select sessions by start date. They exclude client relationship notes, internal session notes, and uploaded documents. Reports are owner-authenticated; export and send the resulting file yourself. There is no public share link or automatic client email.
+4. Open Work log to filter by client and inclusive From/Through dates. Download PDF produces a ready-to-send report grouped by client and date, with session references, deliverables, captured rates, client subtotals, and grand total hours and estimated earnings. Review report also offers print and CSV. Reports include completed sessions only and use the workspace timezone. Sessions crossing the selected date boundaries are prorated to the overlapping time. They exclude client relationship notes, internal session notes, and uploaded documents. Reports are owner-authenticated; export and send the resulting file yourself. There is no public share link or automatic client email.
 5. Use the calendar for calls, focus time, deadlines, and multi-day time off. Click a day to prefill dates, or edit an event by opening it. The end is exclusive (e.g. Friday midnight through Monday midnight covers Friday–Sunday). Mobile includes a scrollable month and a full-width agenda. All times use the explicit workspace timezone, independent of the browser's timezone. Scheduling never starts the timer.
 6. Upload agreements and other documents to each client (10 MB each). Downloads require owner login and are served as attachments. Files live inside SQLite, so one consistent database backup includes documents too. Allowed extensions: PDF, DOCX, XLSX, TXT, CSV, PNG, JPG/JPEG. Content is not malware-scanned; these are private owner uploads, not a public upload endpoint.
 
@@ -21,10 +21,11 @@ Install into `~/services/ia-time`, keeping runtime state outside the Git checkou
 
 ```sh
 mkdir -p ~/services/ia-time
+rsync -a --exclude=__pycache__ --exclude='*.egg-info' platform_auth/ ~/services/ia-platform-auth/
 rsync -a --exclude=.env --exclude=.venv --exclude=data --exclude=backups --exclude=__pycache__ timekeeper/ ~/services/ia-time/
 cd ~/services/ia-time
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
+.venv/bin/pip install ../ia-platform-auth -r requirements.txt
 .venv/bin/python configure.py
 mkdir -p ~/.config/systemd/user
 cp systemd/ia-time* ~/.config/systemd/user/
@@ -48,7 +49,7 @@ Verify `curl http://127.0.0.1:8094/health`, sign in over public HTTPS, and test 
 
 ## Docker alternative
 
-Run `configure.py`, answer yes to Docker, then:
+Keep the repository root and `platform_auth/` alongside `timekeeper/`: the container build uses the repository root as its context. From `timekeeper/`, run `configure.py`, answer yes to Docker, then:
 
 ```sh
 docker compose up -d --build
@@ -74,4 +75,8 @@ Styles use the website's actual logo, Helvetica/Arial typography, black surfaces
 
 ## Current server installation
 
-The workspace is installed at `~/services/ia-time` on `ubs1`, listening on loopback port 8094 with `ia-time.service` and `ia-time-backup.timer` enabled. Its owner login/hash was copied privately from the existing feedback installation, with a separate session secret. A local health check and initial backup succeeded. The new Cloudflare hostname route must be configured before public HTTPS access is available.
+The workspace is installed at `~/services/ia-time` on `ubs1`, listening on loopback port 8094 with `ia-time.service` and `ia-time-backup.timer` enabled. Its owner login/hash was copied privately from the existing feedback installation, with a separate session secret. A local health check and initial backup succeeded. The Cloudflare route serves the workspace over public HTTPS.
+
+## Central authentication
+
+See [identity deployment](../identity/README.md) to activate Keycloak SSO. Default `AUTH_MODE=legacy` preserves the existing owner login until migration is verified. Permissions are workspace-wide, not per-client. Only grant Time read access to people allowed to see every client. OIDC session stores are separate from business backups; discard sessions after disaster recovery and sign in again.

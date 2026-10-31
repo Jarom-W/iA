@@ -100,7 +100,7 @@ def main():
             api=ManagementAPI(apps['admin'])
             reader=api.call('GET','/users',params={'username':'read-only-user','exact':'true'})[0]
             # CI simulates completed first-login setup. Production always requires password change and MFA.
-            api.call('PUT','/users/'+reader['id'],{'requiredActions':[]})
+            api.call('PUT','/users/'+reader['id'],{'requiredActions':[], 'firstName':'Test', 'lastName':'Reader'})
             api.call('PUT','/users/'+reader['id']+'/reset-password',{'type':'password','value':password,'temporary':False})
         reader_browser=requests.Session()
         response=signin(reader_browser,time_origin,'read-only-user',password)
