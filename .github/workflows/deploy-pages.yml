@@ -72,9 +72,30 @@ jobs:
           app=create_app({"TESTING":True,"SECRET_KEY":"ci-only-not-a-production-secret-value","ADMIN_PASSWORD_HASH":generate_password_hash("ci-only"),"DATABASE_PATH":"/tmp/smoke.sqlite3"});
           assert app.test_client().get("/health").status_code == 200'
 
+  timekeeper-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install -r timekeeper/requirements.txt
+      - run: python -m unittest discover -s timekeeper/tests -v
+        env:
+          PYTHONPATH: timekeeper
+      - name: Build time workspace container
+        run: docker build -t ia-time:ci timekeeper
+      - name: Smoke-test time workspace container
+        run: >-
+          docker run --rm --read-only --tmpfs /tmp --entrypoint python ia-time:ci -c
+          'from app import create_app; from werkzeug.security import generate_password_hash;
+          app=create_app({"TESTING":True,"SECRET_KEY":"ci-only-not-a-production-secret-value","ADMIN_PASSWORD_HASH":generate_password_hash("ci-only"),"DATABASE_PATH":"/tmp/time-smoke.sqlite3"});
+          assert app.test_client().get("/health").status_code == 200'
+
   deploy:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    needs: [build, feedback-test]
+    needs: [build, feedback-test, timekeeper-test]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

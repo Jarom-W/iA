@@ -1,0 +1,16 @@
+[Unit]
+Description=Inflection Architectures time and client workspace
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=%h/services/ia-time
+EnvironmentFile=%h/services/ia-time/.env
+ExecStart=%h/services/ia-time/.venv/bin/gunicorn --bind 127.0.0.1:8094 --workers 2 --timeout 45 app:create_app()
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target
