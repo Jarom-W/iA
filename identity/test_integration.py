@@ -38,14 +38,18 @@ def csrf(response):
 def signin(browser, origin, username, password):
     response = browser.get(origin + '/auth/login', timeout=15)
     if '/auth' in urlparse(response.url).path and 'kc-form-login' in response.text:
-        # Requests lacks browsers' secure-context exception for loopback HTTP.
-        # This fixture runs only against the isolated local CI provider.
-        for cookie in browser.cookies:
-            if cookie.domain in ('127.0.0.1', 'localhost.local'):
-                cookie.secure = False
         action = html.unescape(re.search(r'<form[^>]+id="kc-form-login"[^>]+action="([^"]+)"', response.text)[1])
         response = browser.post(action, data={'username': username, 'password': password, 'credentialId': ''}, timeout=20)
     return response
+
+
+class LoopbackSession(requests.Session):
+    """Match browsers' loopback secure-cookie exception for this HTTP CI fixture."""
+    def prepare_request(self, request):
+        for cookie in self.cookies:
+            if cookie.domain in ('127.0.0.1', 'localhost.local'):
+                cookie.secure = False
+        return super().prepare_request(request)
 
 
 class QuietHandler(WSGIRequestHandler):
@@ -81,7 +85,7 @@ def main():
     try:
         time_origin, admin_origin = 'http://127.0.0.1:8101','http://127.0.0.1:8102'
         owner_password=(generated/'secrets/owner-initial-password').read_text().strip()
-        owner=requests.Session()
+        owner=LoopbackSession()
         start=owner.get(time_origin+'/auth/login',allow_redirects=False,timeout=10)
         params=parse_qs(urlparse(start.headers['Location']).query)
         assert params['code_challenge_method']==['S256'] and params['nonce'] and params['state']
@@ -103,7 +107,7 @@ def main():
             # CI simulates completed first-login setup. Production always requires password change and MFA.
             api.call('PUT','/users/'+reader['id'],{'requiredActions':[], 'firstName':'Test', 'lastName':'Reader'})
             api.call('PUT','/users/'+reader['id']+'/reset-password',{'type':'password','value':password,'temporary':False})
-        reader_browser=requests.Session()
+        reader_browser=LoopbackSession()
         response=signin(reader_browser,time_origin,'read-only-user',password)
         assert response.status_code==200 and urlparse(response.url).port==8101, f'Reader sign-in failed: HTTP {response.status_code}, path {urlparse(response.url).path}'
         response=reader_browser.post(time_origin+'/clock-in',data={'csrf':csrf(response),'client_id':'unknown'},timeout=15)
