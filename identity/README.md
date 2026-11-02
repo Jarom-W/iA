@@ -98,3 +98,15 @@ Use a local SSH port-forward for emergency Keycloak management; no public manage
 CI builds the production image and runs an isolated real Keycloak integration: PKCE login, Time-to-Admin SSO, encrypted session storage, read-only enforcement, account creation, rotating refresh tokens, permission-change revocation, protected owner checks and forged callback rejection. Local unit tests cover fail-closed behavior and token/session validation. CI's HTTP loopback provider is test-only; production requires HTTPS.
 
 The existing server account cannot currently run Docker, and the Auth Cloudflare route is not yet configured. Deploying application code alone does not activate SSO. Existing Time and Feedback owner logins remain enabled until the provider and owner MFA are verified and the OIDC environment files are installed. Vault integration still requires its service details.
+
+## Updating the login theme
+
+The `ia` login theme inherits Keycloak's authentication forms and applies the site's logo, black surfaces, green controls, typography and responsive layout. Password, authenticator and account-setup flows retain their native behavior. The image explicitly sets theme ownership and readability: private checkout permissions otherwise cause Keycloak to fall back to its default theme.
+
+After updating the checkout, rebuild the identity container from `identity/`:
+
+```sh
+sudo docker compose up -d --build keycloak
+```
+
+This preserves PostgreSQL accounts and settings. The live realm must have `loginTheme=ia`; the initial import already configures it. Verify a fresh sign-in page includes `/login/ia/` resources and `css/ia.css`. An existing SSO session can skip the login screen; use a private browser window to inspect it.

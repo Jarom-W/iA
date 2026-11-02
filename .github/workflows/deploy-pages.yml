@@ -120,11 +120,18 @@ jobs:
       - run: python -m unittest discover -s platform_auth/tests -v
       - name: Build production identity image
         run: docker build -t ia-identity:ci identity
+      - name: Verify theme is readable by the container user
+        run: >-
+          docker run --rm --entrypoint /bin/bash ia-identity:ci -c
+          'test -r /opt/keycloak/themes/ia/login/theme.properties &&
+          test -r /opt/keycloak/themes/ia/login/resources/css/ia.css &&
+          test -r /opt/keycloak/themes/ia/login/resources/img/brand.svg'
       - name: Verify real OIDC sign-in and access management
         run: |
           python identity/configure.py --test --directory /tmp/ia-identity
           docker run -d --name ia-identity-test -p 127.0.0.1:8098:8080 \
             -v /tmp/ia-identity/secrets/realm.json:/opt/keycloak/data/import/realm.json:ro \
+            -v "$PWD/identity/themes/ia:/opt/keycloak/themes/ia:ro" \
             quay.io/keycloak/keycloak:26.8.1 start-dev --import-realm --hostname http://127.0.0.1:8098
           trap 'docker logs ia-identity-test; docker rm -f ia-identity-test' EXIT
           python identity/test_integration.py /tmp/ia-identity
