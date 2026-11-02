@@ -226,3 +226,15 @@ feedback/secrets/
 
 feedback/data/
 feedback/.env.new
+
+# Private time workspace data
+timekeeper/data/
+timekeeper/backups/
+timekeeper/secrets/
+timekeeper/*.sqlite3*
+
+# Central identity credentials and session stores
+identity/secrets/
+identity/backups/
+*.auth.sqlite3*
+platform_auth/*.egg-info/

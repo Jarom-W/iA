@@ -23,7 +23,7 @@ Requires Docker Compose, persistent storage, HTTPS routing for both subdomains, 
 
    ```sh
    python3 -m venv .venv
-   .venv/bin/pip install -r requirements.txt
+   .venv/bin/pip install ../platform_auth -r requirements.txt
    .venv/bin/python configure.py
    ```
 
@@ -114,3 +114,7 @@ PYTHONPATH=feedback /path/to/venv/bin/python -m unittest discover -s feedback/te
 Tests mock SMTP and use isolated temporary databases. They cover mandatory approval, legacy automatic-publication bypass prevention, owner login, consent enforcement, public-field filtering, one-use tokens, revocation, expiry, SMTP failure, CSRF, admin isolation, validation, escaped text, and login throttling. They do not send real email.
 
 The test configuration permits HTTP and non-secure cookies for isolated local browser previews. Production requires HTTPS origins and secure cookies.
+
+## Central authentication
+
+[Identity deployment](../identity/README.md) documents optional Keycloak SSO and `/admin/access` user/permission management. Existing owner login remains the default until `AUTH_MODE=oidc` is configured. Docker builds require the repository root context, including `platform_auth/`. Native installations must install the shared `platform_auth` package into the service virtual environment before updating the application. Permissions apply to the whole application, not individual forms or customers.

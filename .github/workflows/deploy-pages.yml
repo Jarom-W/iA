@@ -59,12 +59,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - run: pip install -r feedback/requirements.txt
+      - run: pip install ./platform_auth -r feedback/requirements.txt
       - run: python -m unittest discover -s feedback/tests -v
         env:
           PYTHONPATH: feedback
       - name: Build feedback container
-        run: docker build -t ia-feedback:ci feedback
+        run: docker build -t ia-feedback:ci -f feedback/Dockerfile .
       - name: Smoke-test feedback container
         run: >-
           docker run --rm --read-only --tmpfs /tmp --entrypoint python ia-feedback:ci -c
@@ -72,9 +72,66 @@ jobs:
           app=create_app({"TESTING":True,"SECRET_KEY":"ci-only-not-a-production-secret-value","ADMIN_PASSWORD_HASH":generate_password_hash("ci-only"),"DATABASE_PATH":"/tmp/smoke.sqlite3"});
           assert app.test_client().get("/health").status_code == 200'
 
+  timekeeper-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install ./platform_auth -r timekeeper/requirements.txt pypdf==6.21.4
+      - run: python -m unittest discover -s timekeeper/tests -v
+        env:
+          PYTHONPATH: timekeeper
+      - name: Build time workspace container
+        run: docker build -t ia-time:ci -f timekeeper/Dockerfile .
+      - name: Smoke-test time workspace container
+        run: >-
+          docker run --rm --read-only --tmpfs /tmp --entrypoint python ia-time:ci -c
+          'from app import create_app; from werkzeug.security import generate_password_hash;
+          app=create_app({"TESTING":True,"SECRET_KEY":"ci-only-not-a-production-secret-value","ADMIN_PASSWORD_HASH":generate_password_hash("ci-only"),"DATABASE_PATH":"/tmp/time-smoke.sqlite3"});
+          assert app.test_client().get("/health").status_code == 200'
+
+      - name: Smoke-test the production server with two workers
+        run: |
+          TIME_SMOKE_PASSWORD_HASH="$(python -c 'from werkzeug.security import generate_password_hash; print(generate_password_hash("ci-only"))')"
+          docker run -d --name ia-time-server --read-only --tmpfs /tmp --tmpfs /data:uid=10001,gid=10001,mode=0700 \
+            -e TIME_SECRET_KEY=ci-only-not-a-production-secret-value \
+            -e ADMIN_PASSWORD_HASH="$TIME_SMOKE_PASSWORD_HASH" ia-time:ci
+          trap 'docker logs ia-time-server; docker rm -f ia-time-server' EXIT
+          for attempt in $(seq 1 20); do
+            if docker exec ia-time-server python -c 'import urllib.request; assert urllib.request.urlopen("http://127.0.0.1:8000/health").status == 200'; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+
+  identity-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install ./platform_auth -r feedback/requirements.txt -r timekeeper/requirements.txt pypdf==6.21.4
+      - run: python -m unittest discover -s platform_auth/tests -v
+      - name: Build production identity image
+        run: docker build -t ia-identity:ci identity
+      - name: Verify real OIDC sign-in and access management
+        run: |
+          python identity/configure.py --test --directory /tmp/ia-identity
+          docker run -d --name ia-identity-test -p 127.0.0.1:8098:8080 \
+            -v /tmp/ia-identity/secrets/realm.json:/opt/keycloak/data/import/realm.json:ro \
+            quay.io/keycloak/keycloak:26.8.1 start-dev --import-realm --hostname http://127.0.0.1:8098
+          trap 'docker logs ia-identity-test; docker rm -f ia-identity-test' EXIT
+          python identity/test_integration.py /tmp/ia-identity
+
   deploy:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    needs: [build, feedback-test]
+    needs: [build, feedback-test, timekeeper-test, identity-test]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

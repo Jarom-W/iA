@@ -18,6 +18,8 @@ from urllib.parse import urlsplit
 
 from flask import Flask, abort, flash, g, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash
+from ia_auth import auth_settings, init_auth
+from ia_auth.management import register_management
 
 
 def create_app(config=None):
@@ -40,11 +42,12 @@ def create_app(config=None):
         SMTP_FROM=os.getenv("SMTP_FROM", "Inflection Architectures <jarom@inflectionarchitectures.com>"),
         SMTP_TLS=os.getenv("SMTP_TLS", "starttls"),
     )
+    app.config.update(auth_settings())
     if config:
         app.config.update(config)
     if not app.config["SECRET_KEY"] or len(app.config["SECRET_KEY"]) < 32:
         raise RuntimeError("Set SECRET_KEY to a random value of at least 32 characters.")
-    if not app.config["ADMIN_PASSWORD_HASH"]:
+    if app.config["AUTH_MODE"] == "legacy" and not app.config["ADMIN_PASSWORD_HASH"]:
         raise RuntimeError("Set ADMIN_PASSWORD_HASH before starting the service.")
     for key in ("ADMIN_ORIGIN", "FEEDBACK_ORIGIN", "PUBLIC_SITE_ORIGIN"):
         value = app.config[key].rstrip("/")
@@ -96,7 +99,7 @@ def create_app(config=None):
                 origin = request.headers.get("Origin")
                 if request.headers.get("Sec-Fetch-Site") == "cross-site" or (origin and origin not in (app.config["ADMIN_ORIGIN"], "null")):
                     abort(403)
-                if not hmac.compare_digest(request.form.get("csrf", ""), session.get("csrf", "invalid")):
+                if not hmac.compare_digest(request.form.get("csrf", "").encode(), session.get("csrf", "invalid").encode()):
                     abort(403, "Your session expired. Reload the page and try again.")
         elif request.path.startswith(("/f/", "/api/")):
             if request.host != urlsplit(app.config["FEEDBACK_ORIGIN"]).netloc:
@@ -119,7 +122,11 @@ def create_app(config=None):
     def admin_required(fn):
         @wraps(fn)
         def wrapped(*args, **kwargs):
-            if not session.get("admin"):
+            if auth := app.extensions.get('platform_auth'):
+                denied = auth.require('feedback:read', *(['feedback:write'] if request.method == 'POST' else []))
+                if denied is not None:
+                    return denied
+            elif not session.get("admin"):
                 return redirect(url_for("login"))
             return fn(*args, **kwargs)
         return wrapped
@@ -177,6 +184,10 @@ def create_app(config=None):
 
     @app.route("/admin/login", methods=["GET", "POST"])
     def login():
+        if app.config['AUTH_MODE'] == 'oidc':
+            if request.method == 'POST':
+                abort(405)
+            return render_template('login.html')
         error = None
         if request.method == "POST":
             now = int(time.time())
@@ -199,8 +210,9 @@ def create_app(config=None):
         return render_template("login.html", error=error)
 
     @app.post("/admin/logout")
-    @admin_required
     def logout():
+        if auth := app.extensions.get('platform_auth'):
+            return auth.logout()
         session.clear()
         return redirect(url_for("login"))
 
@@ -376,6 +388,8 @@ def create_app(config=None):
         rows = db().execute("SELECT r.id,r.name,r.company,r.role,r.quote,r.rating,f.service FROM responses r JOIN invitations i ON i.id=r.invitation_id JOIN forms f ON f.id=i.form_id WHERE r.status='published' AND r.consent=1 ORDER BY r.published_at DESC LIMIT 12").fetchall()
         return jsonify(testimonials=[dict(row) for row in rows])
 
+    @app.errorhandler(401)
+    @app.errorhandler(503)
     @app.errorhandler(400)
     @app.errorhandler(403)
     @app.errorhandler(404)
@@ -385,4 +399,6 @@ def create_app(config=None):
     def request_error(error):
         return render_template("message.html", title="We couldn’t open that request.", message=error.description), error.code
 
+    init_auth(app, app.config['ADMIN_ORIGIN'], '/admin', 'admin')
+    register_management(app)
     return app
