@@ -1,6 +1,8 @@
 services:
   timekeeper:
-    build: .
+    build:
+      context: ..
+      dockerfile: timekeeper/Dockerfile
     restart: unless-stopped
     env_file: .env
     ports:
