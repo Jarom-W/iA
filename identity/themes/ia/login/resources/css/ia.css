@@ -1,1 +1,171 @@
-:root{--pf-v5-global--primary-color--100:#81f268;--pf-v5-global--primary-color--200:#a7f694}.login-pf body{background:#080909;color:#f2f1ed;font-family:"Helvetica Neue",Arial,sans-serif}#kc-header-wrapper{color:#f2f1ed;text-transform:none;font-size:22px;letter-spacing:-.03em}.card-pf{background:#111313;border-top:2px solid #81f268;border-radius:4px;box-shadow:none;max-width:480px;padding:32px}#kc-page-title{font-size:24px;font-weight:500}a{color:#81f268}a:hover{color:#a7f694}.pf-c-button.pf-m-primary,.btn-primary{background:#81f268;border-color:#81f268;color:#11180f}.pf-c-button.pf-m-primary:hover,.btn-primary:hover{background:#a7f694}.form-control{background:#0b0e0b;border:1px solid #475048;color:#f2f1ed;min-height:44px}.form-control:focus{border-color:#81f268;box-shadow:0 0 0 1px #81f268}.login-pf-page .login-pf-signup,.login-pf-page .login-pf-settings{color:#b2bbb3}#kc-info-wrapper{background:#181c18;color:#c0c9c1}.alert-error{background:#241b20;color:#efd4e1}.kc-feedback-text{color:inherit}input:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid #81f268;outline-offset:3px}
+/* Shared iA palette and controls; retain Keycloak's accessible authentication forms. */
+:root,
+:root.pf-v5-theme-dark {
+  color-scheme: dark;
+  --ia-accent: #81f268;
+  --ia-ink: #f2f1ed;
+  --ia-muted: #aaa9a5;
+  --ia-line: #30302f;
+  --pf-v5-global--primary-color--100: var(--ia-accent);
+  --pf-v5-global--primary-color--200: #a7f694;
+  --pf-v5-global--Color--100: var(--ia-ink);
+  --pf-v5-global--Color--200: var(--ia-muted);
+  --pf-v5-global--BackgroundColor--100: #0a0a0a;
+  --pf-v5-global--BackgroundColor--200: #030303;
+  --pf-v5-global--FontFamily--text: "Helvetica Neue", Arial, sans-serif;
+  --pf-v5-global--FontFamily--heading: "Helvetica Neue", Arial, sans-serif;
+}
+html.login-pf, .login-pf body, #keycloak-bg {
+  margin: 0;
+  min-height: 100%;
+  background: #030303;
+  color: var(--ia-ink);
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+.pf-v5-c-login {
+  display: block;
+  padding: 0 24px 48px;
+  min-height: 100vh;
+  background: none;
+}
+.pf-v5-c-login__container {
+  display: block;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  grid-template-columns: none;
+}
+#kc-header {
+  display: flex;
+  align-items: center;
+  min-height: 100px;
+  margin: 0 0 64px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--ia-line);
+}
+#kc-header-wrapper {
+  width: 290px;
+  max-width: 100%;
+  height: 44px;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-indent: -9999px;
+  background: url('../img/brand.svg') left center / contain no-repeat;
+}
+.pf-v5-c-login__main {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  background: #0a0a0a;
+  color: var(--ia-ink);
+  border: 1px solid var(--ia-line);
+  border-radius: 2px;
+  box-shadow: none;
+}
+.pf-v5-c-login__main-header { padding: 32px 32px 0; }
+.pf-v5-c-login__main-header::before {
+  content: 'INFLECTION ARCHITECTURES / ACCOUNT';
+  display: block;
+  margin-bottom: 18px;
+  font: 10px/1.6 SFMono-Regular, Consolas, monospace;
+  letter-spacing: .08em;
+  color: var(--ia-accent);
+}
+#kc-page-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 450;
+  letter-spacing: -.035em;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.pf-v5-c-login__main-body { padding: 28px 32px 32px; }
+.pf-v5-c-login__main-footer { padding: 0; background: none; }
+.pf-v5-c-login__main-footer:empty { display: none; }
+.pf-v5-c-form { gap: 22px; }
+.pf-v5-c-form__label, .pf-v5-c-check__label { color: var(--ia-ink); font-size: 14px; font-weight: 400; }
+.pf-v5-c-form__group-label { padding-bottom: 8px; }
+.pf-v5-c-form-control {
+  background: #101010;
+  color: var(--ia-ink);
+  border: 1px solid #666;
+  border-radius: 0;
+  min-height: 48px;
+}
+.pf-v5-c-form-control::before, .pf-v5-c-form-control::after { display: none; }
+.pf-v5-c-form-control input, .pf-v5-c-form-control textarea, .pf-v5-c-form-control select {
+  color: var(--ia-ink);
+  font: 16px/1.5 "Helvetica Neue", Arial, sans-serif;
+  padding: 11px 12px;
+  background: transparent;
+}
+.pf-v5-c-form-control:focus-within { border-color: var(--ia-accent); outline: 1px solid var(--ia-accent); }
+.pf-v5-c-form-control:has([aria-invalid="true"]) { border-color: #ffb5a9; }
+.pf-v5-c-button {
+  min-height: 48px;
+  padding: 12px 20px;
+  border-radius: 0;
+  font: 500 14px/1.5 "Helvetica Neue", Arial, sans-serif;
+  transition: background .18s, color .18s, border-color .18s;
+}
+.pf-v5-c-button::after { display: none; }
+.pf-v5-c-button.pf-m-primary { background: var(--ia-accent); color: #080808; border: 1px solid var(--ia-accent); }
+.pf-v5-c-button.pf-m-primary:hover { background: #a7f694; border-color: #a7f694; }
+.pf-v5-c-button.pf-m-control, .pf-v5-c-button.pf-m-secondary {
+  background: #101010; color: var(--ia-ink); border: 1px solid #666;
+}
+.pf-v5-c-button.pf-m-control:hover, .pf-v5-c-button.pf-m-secondary:hover {
+  background: #81f26822; border-color: var(--ia-accent); color: var(--ia-accent);
+}
+.pf-v5-c-button.pf-m-link { color: var(--ia-accent); }
+.pf-v5-c-check__input { accent-color: var(--ia-accent); width: 17px; height: 17px; }
+.pf-v5-c-form__helper-text { margin-top: 14px; }
+.pf-v5-c-helper-text, .pf-v5-c-login__main p, #kc-info, #kc-registration { color: var(--ia-muted); font-size: 14px; line-height: 1.7; }
+.pf-v5-c-login a { color: var(--ia-accent); text-decoration: none; }
+.pf-v5-c-login a:not(.pf-v5-c-button) {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: right bottom;
+  background-repeat: no-repeat;
+  transition: background-size .25s;
+}
+.pf-v5-c-login a:not(.pf-v5-c-button):hover { background-size: 100% 1px; background-position: left bottom; }
+.pf-v5-c-login :is(a, button, input, select, textarea):focus-visible { outline: 2px solid var(--ia-accent); outline-offset: 3px; }
+.pf-v5-c-alert { background: #171b16; color: var(--ia-ink); border: 1px solid var(--ia-line); box-shadow: none; margin-bottom: 24px; }
+.pf-v5-c-alert.pf-m-danger { background: #211716; border-color: #805048; }
+.pf-v5-c-alert__title, .pf-v5-c-alert__description { color: var(--ia-ink); }
+.pf-v5-c-helper-text__item.pf-m-error { color: #ffb5a9; }
+#kc-totp-settings { padding-left: 20px; line-height: 1.7; }
+#kc-totp-secret-qr-code { max-width: 100%; background: white; padding: 12px; }
+#kc-totp-secret-key { overflow-wrap: anywhere; }
+.ia-auth-footer { border-top: 1px solid var(--ia-line); padding: 20px 32px; font-size: 12px; line-height: 1.7; }
+.ia-auth-footer p { margin: 0 0 8px; font-size: 12px; }
+@media (max-width: 540px) {
+  .pf-v5-c-login { padding: 0 20px 32px; }
+  #kc-header { min-height: 82px; margin-bottom: 32px; }
+  #kc-header-wrapper { width: 250px; height: 34px; }
+  .pf-v5-c-login__main-header { padding: 24px 22px 0; }
+  .pf-v5-c-login__main-body { padding: 24px 22px; }
+  .ia-auth-footer { padding: 20px 22px; }
+  #kc-page-title { font-size: 26px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pf-v5-c-login *, .pf-v5-c-login *::before, .pf-v5-c-login *::after { transition: none !important; }
+}
+/* Override the higher-specificity defaults in Keycloak's layout stylesheet. */
+.login-pf #kc-header-wrapper { background-size: contain; }
+.login-pf .pf-v5-c-login__main { border-top: 1px solid var(--ia-line); }
+.login-pf .pf-v5-c-login__main-header { display: block; }
+.login-pf .pf-v5-c-login__main-header::before { white-space: normal; }
+.login-pf .pf-v5-c-login__main-footer { padding: 0; }
+.login-pf .pf-v5-c-button.pf-m-primary { background: #81f268; color: #080808; }
+.login-pf .pf-v5-c-button.pf-m-primary:hover { background: #a7f694; }
+.login-pf .pf-v5-c-button.pf-m-control { background: #101010; color: #f2f1ed; }
+.login-pf .pf-v5-c-button.pf-m-control:hover { background: #81f26822; color: #81f268; }
+.login-pf .pf-v5-c-form__label-text { font-weight: 400; }
+
+.login-pf .pf-v5-c-login__main::before { border: 0; background: none; }
+.login-pf .pf-v5-c-login__main-footer { min-height: 0; }
+.login-pf .pf-v5-c-login__main-header { border-top: 0; }
+.login-pf .pf-v5-c-login__main-footer:not(:has(*)) { display: none; }

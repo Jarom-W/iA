@@ -38,6 +38,7 @@ def csrf(response):
 def signin(browser, origin, username, password):
     response = browser.get(origin + '/auth/login', timeout=15)
     if '/auth' in urlparse(response.url).path and 'kc-form-login' in response.text:
+        assert 'css/ia.css' in response.text and 'Back to the website' in response.text, 'Custom login theme did not render.'
         action = html.unescape(re.search(r'<form[^>]+id="kc-form-login"[^>]+action="([^"]+)"', response.text)[1])
         response = browser.post(action, data={'username': username, 'password': password, 'credentialId': ''}, timeout=20)
     return response
