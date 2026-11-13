@@ -16,7 +16,7 @@ export const pricing = {
       id: "assessment", group: "common", name: "Focused Business Assessment", amount: 249, starting: true,
       summary: "Get a clear recommendation on one defined business problem.",
       includes: ["Review of agreed information", "A working conversation", "A written recommendation with priorities"],
-      note: "A focused assessment, not a full business audit. Certain complex assessments may mandate a scoped discovery, but we'll go through that in our initial consultation before charging you anything.",
+      note: "For one defined question. If your project needs a deeper review of systems, teams, and workflows, we'll discuss a Systems Discovery & Build Planning engagement during the initial consultation, before any paid work begins.",
       detail: "We agree on the question and information needed before starting. The deliverable is a practical recommendation for that question, with priorities and explicit assumptions.",
     },
     {
@@ -28,11 +28,11 @@ export const pricing = {
     },
 
     {
-      id: "sprint", group: "advanced", name: "Scoped Discovery", amount: null, starting: true,
-      summary: "Work together to map data, understand your business from the inside out, and create a concrete roadmap to your solution.",
-      includes: ["Regular stakeholder meetings", "Technical analysis grounded in business fundamentals", "Final solution recommendation"],
-      note: "Go from not knowing what to do about your operation, to holding the solution's blueprint in your hands.",
-      detail: "Depending on number of stakeholders, systems, and complexity, we'll work together to establish a reasonable timeline to mapping your business workflows and getting the answers and recommendations you've been looking for.",
+      id: "discovery", group: "advanced", name: "Systems Discovery & Build Planning", amount: null, starting: false,
+      summary: "A multi-week engagement to understand your operation, define what needs to be built, and turn business priorities into a concrete technical plan.",
+      includes: ["Stakeholder interviews and working sessions with the people who use and manage your systems", "Maps of current systems, workflows, data flows, and integration dependencies", "A business plan covering goals, priorities, expected value, and success measures", "A technical build plan with architecture, requirements, phased scope, risks, and budget and timeline estimates"],
+      note: "Leave with a written plan you can use to approve, budget, and guide the build. Implementation is a separate engagement.",
+      detail: "I work with your team over several weeks to map how the business operates, meet with stakeholders, review existing technology, and evaluate practical options. We agree on the duration, access, deliverables, and fee before starting. The final business and technical plan defines what to build, why it matters, how the pieces fit together, and the sequence for delivery, with assumptions and dependencies made explicit.",
     },
     {
       id: "sprint", group: "advanced", name: "Implementation Sprint", amount: null, starting: true,
@@ -45,8 +45,8 @@ export const pricing = {
       id: "custom", group: "advanced", name: "Custom Systems", amount: null, starting: false,
       summary: "Integrations, internal tools, and bespoke workflows when existing tools do not fit well enough.",
       includes: ["Options and constraints considered before a build", "Scope, ownership, and operating costs made clear", "Implementation and support quoted for the actual system"],
-      note: "Scoped after discovery. There is no universal starting price for a custom system.",
-      detail: "Our Scoped Discovery period will provide the blueprint. Custom Systems is where we make it real.",
+      note: "Quoted for the agreed requirements, integrations, and delivery milestones. There is no universal starting price for a custom system.",
+      detail: "Build from an agreed business and technical plan, whether developed through Systems Discovery & Build Planning or supplied by your team. We confirm requirements, responsibilities, acceptance criteria, and delivery milestones before implementation begins.",
     },
   ],
   otherProjects: [
