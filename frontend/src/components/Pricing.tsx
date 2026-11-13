@@ -27,7 +27,6 @@ export default function Pricing() {
           {pricing.projects.filter(project => project.group === group.id).map(project => <article className="project-price" key={project.id}>
             <div className="project-price-title"><h3>{project.name}</h3><p className="price-value">{project.amount === null ? <span className="scoped-price">Scoped after discovery</span> : <>{project.starting && <span>from </span>}{usd(project.amount)}</>}</p></div>
             <div className="project-price-content"><p className="project-summary">{project.summary}</p><ul>{project.includes.map(item => <li key={item}>{item}</li>)}</ul><p className="scope-note">{project.note}</p>
-              {project.id === "custom" && <p className="discovery-price">{pricing.technicalDiscovery.name} starts at <strong>{usd(pricing.technicalDiscovery.amount)}</strong> where needed.</p>}
               <details className="scope-details"><summary>{project.id === "custom" ? "What technical discovery delivers" : `Scope details: ${project.name}`}</summary><p>{project.detail}</p></details>
             </div>
           </article>)}

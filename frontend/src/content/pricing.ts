@@ -13,18 +13,26 @@ export const pricing = {
       detail: "You'll receive an emailed report of our conversation as recorded by an Ai agent."
   },
     {
-      id: "assessment", group: "common", name: "Focused Business Assessment", amount: 250, starting: false,
+      id: "assessment", group: "common", name: "Focused Business Assessment", amount: 249, starting: true,
       summary: "Get a clear recommendation on one defined business problem.",
       includes: ["Review of agreed information", "A working conversation", "A written recommendation with priorities"],
-      note: "A focused assessment, not a full business audit. Larger or messy engagements are scoped separately.",
+      note: "A focused assessment, not a full business audit. Certain complex assessments may mandate a scoped discovery, but we'll go through that in our initial consultation before charging you anything.",
       detail: "We agree on the question and information needed before starting. The deliverable is a practical recommendation for that question, with priorities and explicit assumptions.",
     },
     {
-      id: "website", group: "common", name: "Marketing Website", amount: 500, starting: true,
+      id: "website", group: "common", name: "Marketing Website", amount: 499, starting: true,
       summary: "A clear, useful website that helps the right people take the next step.",
       includes: ["Option for multiple pages, using an agreed layout and supplied business content", "Responsive implementation, an inquiry path, and foundational on-page search setup", "Two consolidated revision rounds within scope, plus launch handoff"],
       note: "Hosting and care are separate. No guaranteed rankings, traffic, or lead counts.",
-      detail: "Copywriting, brand identity, ecommerce, complex booking, extensive migration, and custom integrations are separately scoped. Page count, content responsibilities, and supported features are agreed in writing.",
+      detail: "Bring your ideas and i'll put you on the internet. Copywriting, brand identity, ecommerce, complex booking, extensive migration, and custom integrations are separately scoped. Page count, content responsibilities, and supported features are agreed in writing.",
+    },
+
+    {
+      id: "sprint", group: "advanced", name: "Scoped Discovery", amount: null, starting: true,
+      summary: "Work together to map data, understand your business from the inside out, and create a concrete roadmap to your solution.",
+      includes: ["Regular stakeholder meetings", "Technical analysis grounded in business fundamentals", "Final solution recommendation"],
+      note: "Go from not knowing what to do about your operation, to holding the solution's blueprint in your hands.",
+      detail: "Depending on number of stakeholders, systems, and complexity, we'll work together to establish a reasonable timeline to mapping your business workflows and getting the answers and recommendations you've been looking for.",
     },
     {
       id: "sprint", group: "advanced", name: "Implementation Sprint", amount: null, starting: true,
@@ -38,16 +46,15 @@ export const pricing = {
       summary: "Integrations, internal tools, and bespoke workflows when existing tools do not fit well enough.",
       includes: ["Options and constraints considered before a build", "Scope, ownership, and operating costs made clear", "Implementation and support quoted for the actual system"],
       note: "Scoped after discovery. There is no universal starting price for a custom system.",
-      detail: "When uncertainty calls for paid technical discovery, we first agree on its deliverable: a feasibility review, options, key risks, and a proposed implementation scope. Discovery is used when needed, not required for every conversation.",
+      detail: "Our Scoped Discovery period will provide the blueprint. Custom Systems is where we make it real.",
     },
   ],
-  technicalDiscovery: { name: "Paid technical discovery", amount: 1000 },
   otherProjects: [
   ],
   websiteCare: [
     {
       name: "Website Care", amount: 50,
-      summary: "Hosting and care for a supported simple marketing site.",
+      summary: "Hosting and care for a supported simple marketing site. This can be a site we build together or one you bring from somewhere else",
       includes: ["HTTPS, monitoring, and agreed form checks", "Routine upkeep and recovery support"],
       note: "Content changes are separate. Traffic, storage, and supported features are scoped; unusually demanding use is quoted separately.",
     },
