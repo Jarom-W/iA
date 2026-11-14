@@ -1,0 +1,16 @@
+[Unit]
+Description=Inflection Architectures product surveys
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=%h/services/ia-survey
+EnvironmentFile=%h/services/ia-survey/.env
+ExecStart=%h/services/ia-survey/.venv/bin/gunicorn --preload --bind 127.0.0.1:8096 --workers 2 --timeout 45 app:create_app()
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

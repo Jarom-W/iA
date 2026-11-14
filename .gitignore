@@ -238,3 +238,9 @@ identity/secrets/
 identity/backups/
 *.auth.sqlite3*
 platform_auth/*.egg-info/
+
+# Product surveys
+survey/data/
+survey/backups/
+survey/secrets/
+survey/*.sqlite3*

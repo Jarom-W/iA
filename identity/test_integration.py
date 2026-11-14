@@ -71,12 +71,12 @@ def main():
     else:
         raise RuntimeError('Identity provider did not become ready.')
     apps, servers = {}, []
-    for name, directory, port in [('time','timekeeper',8101),('admin','feedback',8102)]:
+    for name, directory, port in [('time','timekeeper',8101),('admin','feedback',8102),('survey','survey',8104)]:
         config = settings(generated / 'secrets' / (name + '-oidc.env'))
         config.update(TESTING=True,SECRET_KEY=secrets.token_urlsafe(48),ADMIN_PASSWORD_HASH='',
             DATABASE_PATH=str(generated / (name + '.sqlite3')),SESSION_COOKIE_SECURE=False,SESSION_COOKIE_NAME='ia-' + name + '-test')
-        if name == 'time':
-            config['ORIGIN']='http://127.0.0.1:8101'
+        if name in ('time','survey'):
+            config['ORIGIN']=f'http://127.0.0.1:{port}'
         else:
             config.update(ADMIN_ORIGIN='http://127.0.0.1:8102',FEEDBACK_ORIGIN='http://localhost:8102',PUBLIC_SITE_ORIGIN='http://localhost:8103')
         apps[name] = load_app('integration_' + name,directory)(config)
@@ -102,7 +102,9 @@ def main():
         assert response.status_code==200 and urlparse(response.url).port==8101, f'Time sign-in failed: HTTP {response.status_code}, path {urlparse(response.url).path}'
         response=owner.get(admin_origin+'/auth/login',timeout=20)
         assert response.status_code==200 and urlparse(response.url).path=='/admin/access', f'Admin SSO failed: HTTP {response.status_code}, path {urlparse(response.url).path}'
-        for name in ('time','admin'):
+        survey_response=owner.get('http://127.0.0.1:8104/auth/login',timeout=20)
+        assert survey_response.status_code==200 and urlparse(survey_response.url).path=='/admin', 'Survey SSO failed.'
+        for name in ('time','admin','survey'):
             cookie=owner.cookies.get('ia-'+name+'-test')
             value=apps[name].session_interface.get_signing_serializer(apps[name]).loads(cookie)
             assert 'sso_sid' in value and 'access_token' not in value and 'refresh_token' not in value
@@ -124,6 +126,7 @@ def main():
         response=reader_browser.get(admin_origin+'/auth/login',timeout=15)
         assert response.status_code==403, 'Time-only user could enter feedback admin.'
         assert reader_browser.get(admin_origin+'/admin/access',timeout=15).status_code==403
+        assert reader_browser.get('http://127.0.0.1:8104/auth/login',timeout=15).status_code==403, 'Time-only user could enter Surveys.'
         # Force the application to refresh a still-valid token; Keycloak rotates the refresh token.
         auth=apps['time'].extensions['platform_auth']
         cookie=owner.cookies.get('ia-time-test')

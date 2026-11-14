@@ -7,7 +7,7 @@ import secrets
 import uuid
 
 PERMISSIONS = ['platform:manage', 'feedback:read', 'feedback:write', 'time:read', 'time:write',
-               'time:documents:read', 'time:documents:write', 'vault:access']
+               'time:documents:read', 'time:documents:write', 'survey:read', 'survey:write', 'vault:access']
 
 
 def realm_config(origin, app_origins, owner_id, owner_password, client_secrets, testing=False):
@@ -19,7 +19,7 @@ def realm_config(origin, app_origins, owner_id, owner_password, client_secrets, 
             'protocolMappers': [{'name':'application-audience', 'protocol':'openid-connect', 'protocolMapper':'oidc-audience-mapper',
                 'config': {'included.client.audience':name, 'access.token.claim':'true', 'id.token.claim':'false', 'introspection.token.claim':'true'}}],
             'attributes': {'pkce.code.challenge.method': 'S256', 'post.logout.redirect.uris': redirect + ('/admin/login' if name == 'ia-admin' else '/login')}}
-    clients = [client('ia-time', app_origins['time'], []), client('ia-admin', app_origins['admin'], [])]
+    clients = [client('ia-time', app_origins['time'], []), client('ia-admin', app_origins['admin'], []), client('ia-survey', app_origins['survey'], [])]
     # Vault remains disabled until its actual implementation and exact callback are known.
     clients.append({'clientId': 'ia-vault', 'enabled': False, 'protocol': 'openid-connect', 'publicClient': False,
         'secret': client_secrets['ia-vault'], 'standardFlowEnabled': True, 'implicitFlowEnabled': False,
@@ -51,6 +51,7 @@ def realm_config(origin, app_origins, owner_id, owner_password, client_secrets, 
         'clients': clients,
         'scopeMappings': [{'client': 'ia-time', 'roles': [x for x in PERMISSIONS if x.startswith('time:')]},
             {'client': 'ia-admin', 'roles': [x for x in PERMISSIONS if x.startswith(('platform:', 'feedback:'))]},
+            {'client': 'ia-survey', 'roles': ['survey:read', 'survey:write']},
             {'client': 'ia-vault', 'roles': ['vault:access']}],
         'users': [{'id': owner_id, 'username': 'jarom', 'enabled': True, 'realmRoles': PERMISSIONS,
             **({'firstName': 'Test', 'lastName': 'Owner', 'email': 'owner@example.test'} if testing else {}),
@@ -73,9 +74,9 @@ def main():
     (root / 'secrets').mkdir(mode=0o700)
     owner_id = str(uuid.uuid4())
     password = secrets.token_urlsafe(32) + 'Aa1!'
-    client_secrets = {name: secrets.token_urlsafe(48) for name in ['ia-time', 'ia-admin', 'ia-vault', 'ia-access-admin']}
+    client_secrets = {name: secrets.token_urlsafe(48) for name in ['ia-time', 'ia-admin', 'ia-vault', 'ia-access-admin', 'ia-survey']}
     origin = 'http://127.0.0.1:8098' if args.test else 'https://auth.inflectionarchitectures.com'
-    apps = {'time': 'http://127.0.0.1:8101', 'admin': 'http://127.0.0.1:8102'} if args.test else {'time': 'https://time.inflectionarchitectures.com', 'admin': 'https://admin.inflectionarchitectures.com'}
+    apps = {'time': 'http://127.0.0.1:8101', 'admin': 'http://127.0.0.1:8102', 'survey': 'http://127.0.0.1:8104'} if args.test else {'time': 'https://time.inflectionarchitectures.com', 'admin': 'https://admin.inflectionarchitectures.com', 'survey': 'https://survey.inflectionarchitectures.com'}
     realm = realm_config(origin, apps, owner_id, password, client_secrets, testing=args.test)
     (root / 'secrets/realm.json').write_text(json.dumps(realm, indent=2))
     # Keycloak is non-root in Docker. The parent directory remains owner-only;
@@ -85,7 +86,7 @@ def main():
         path.write_text(''.join(f"{key}='{value}'\n" for key, value in values.items()))
     env(root / '.env', {'POSTGRES_PASSWORD': secrets.token_urlsafe(48), 'KC_BOOTSTRAP_ADMIN_USERNAME': 'bootstrap-owner', 'KC_BOOTSTRAP_ADMIN_PASSWORD': secrets.token_urlsafe(40) + 'Aa1!'})
     (root / 'secrets/owner-initial-password').write_text(password + '\n')
-    for app_name in ('time', 'admin'):
+    for app_name in ('time', 'admin', 'survey'):
         values = {'AUTH_MODE': 'oidc', 'OIDC_ISSUER': origin + '/realms/inflection', 'OIDC_CLIENT_ID': 'ia-' + app_name,
             'OIDC_CLIENT_SECRET': client_secrets['ia-' + app_name]}
         if app_name == 'admin':
