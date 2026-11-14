@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block content %}<section class="login panel"><p class="eyebrow">PRODUCT SURVEYS</p><h1>{{ title }}</h1><p>{{ message }}</p>{% if request.path.startswith('/admin') %}<a href="{{ url_for('dashboard') }}">Back to surveys →</a>{% endif %}</section>{% endblock %}

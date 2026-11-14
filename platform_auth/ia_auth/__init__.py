@@ -27,6 +27,8 @@ PERMISSIONS = {
     'time:write': ('Time', 'Manage clients, sessions, work logs, and calendar'),
     'time:documents:read': ('Time', 'Download client documents'),
     'time:documents:write': ('Time', 'Upload client documents'),
+    'survey:read': ('Surveys', 'Read all product surveys, responses, analytics and exports'),
+    'survey:write': ('Surveys', 'Build, publish, close and duplicate product surveys'),
     'vault:access': ('Vault', 'Sign in to Vault (requires Vault integration)'),
 }
 

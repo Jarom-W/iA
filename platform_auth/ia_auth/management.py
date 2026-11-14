@@ -73,7 +73,7 @@ def register_management(app):
         if roles - PERMISSIONS.keys():
             abort(400, 'Unknown application permission.')
         dependencies = {'time:write': {'time:read'}, 'time:documents:read': {'time:read'},
-            'time:documents:write': {'time:read', 'time:write'}, 'feedback:write': {'feedback:read'}}
+            'time:documents:write': {'time:read', 'time:write'}, 'feedback:write': {'feedback:read'}, 'survey:write': {'survey:read'}}
         if any(role in roles and not required.issubset(roles) for role, required in dependencies.items()):
             abort(400, 'Write permissions need their application read permission. Document uploads also need Time write access.')
         return roles

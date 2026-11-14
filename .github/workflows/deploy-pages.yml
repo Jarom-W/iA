@@ -108,6 +108,35 @@ jobs:
           done
           exit 1
 
+  survey-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install ./platform_auth -r survey/requirements.txt
+      - run: python -m unittest discover -s survey/tests -v
+        env:
+          PYTHONPATH: survey
+      - name: Build survey container
+        run: docker build -t ia-survey:ci -f survey/Dockerfile .
+      - name: Smoke-test production survey server
+        run: |
+          docker run -d --name ia-survey-server --read-only --tmpfs /tmp --tmpfs /data:uid=10001,gid=10001,mode=0700 \
+            -e SURVEY_SECRET_KEY=ci-only-not-a-production-secret-value \
+            -e AUTH_MODE=oidc -e OIDC_ISSUER=https://auth.example.test/realms/inflection \
+            -e OIDC_CLIENT_ID=ia-survey -e OIDC_CLIENT_SECRET=ci-only ia-survey:ci
+          trap 'docker logs ia-survey-server; docker rm -f ia-survey-server' EXIT
+          for attempt in $(seq 1 20); do
+            if docker exec ia-survey-server python -c 'import urllib.request; assert urllib.request.urlopen("http://127.0.0.1:8000/health").status == 200'; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+
   identity-test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -116,7 +145,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - run: pip install ./platform_auth -r feedback/requirements.txt -r timekeeper/requirements.txt pypdf==6.21.4
+      - run: pip install ./platform_auth -r feedback/requirements.txt -r timekeeper/requirements.txt -r survey/requirements.txt pypdf==6.21.4
       - run: python -m unittest discover -s platform_auth/tests -v
       - name: Build production identity image
         run: docker build -t ia-identity:ci identity
@@ -138,7 +167,7 @@ jobs:
 
   deploy:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    needs: [build, feedback-test, timekeeper-test, identity-test]
+    needs: [build, feedback-test, timekeeper-test, survey-test, identity-test]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
