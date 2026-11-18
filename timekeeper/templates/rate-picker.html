@@ -1,0 +1,6 @@
+<label>Billing rate<select name="rate_id" required data-rate-select>
+<option value="">Choose a rate</option>
+{% if entry %}<option value="keep" data-client="{{ entry.client_id }}" {% if request.form.get('rate_id','keep')=='keep' %}selected{% endif %}>Keep recorded: {{ entry.rate_label }} · {{ entry.rate_cents|money }}/hr</option>{% endif %}
+{% for option in rate_options %}<option value="{{ option.id }}" data-client="{{ option.client_id }}" {% if request.form.get('rate_id')==option.id %}selected{% endif %}>{{ option.label }} · {{ option.rate_cents|money }}/hr</option>{% endfor %}
+{% if allow_custom %}<option value="custom" {% if request.form.get('rate_id')=='custom' %}selected{% endif %}>Custom rate for this entry</option>{% endif %}
+</select><small>Choose the client first. Recorded rates stay fixed until you explicitly edit an entry.</small></label>

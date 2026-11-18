@@ -121,6 +121,8 @@ def main():
         assert response.status_code==200 and urlparse(response.url).port==8101, f'Reader sign-in failed: HTTP {response.status_code}, path {urlparse(response.url).path}'
         response=reader_browser.post(time_origin+'/clock-in',data={'csrf':csrf(response),'client_id':'unknown'},timeout=15)
         assert response.status_code==403, 'Read-only user could mutate time data.'
+        assert reader_browser.get(time_origin+'/entries/new',timeout=15).status_code==403, 'Read-only user could open time-entry editor.'
+        assert reader_browser.get(time_origin+'/monthly-summary',timeout=15).status_code==200, 'Read-only user could not review monthly totals.'
         response=reader_browser.get(admin_origin+'/auth/login',timeout=15)
         assert response.status_code==403, 'Time-only user could enter feedback admin.'
         assert reader_browser.get(admin_origin+'/admin/access',timeout=15).status_code==403

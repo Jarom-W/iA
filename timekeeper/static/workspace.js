@@ -65,3 +65,34 @@ if (journal) {
   journal.addEventListener('submit', () => { dirty = false; });
   window.addEventListener('beforeunload', event => { if (dirty) { event.preventDefault(); event.returnValue = ''; } });
 }
+
+// Each rate is scoped to its client. The server checks this independently.
+document.querySelectorAll('[data-rate-form]').forEach(form => {
+  const client = form.querySelector('[data-rate-client]');
+  const rateSelect = form.querySelector('[data-rate-select]');
+  const custom = form.querySelector('[data-custom-rate]');
+  function updateRates() {
+    for (const option of rateSelect.options) {
+      const available = !option.dataset.client || option.dataset.client === client.value;
+      option.disabled = !available;
+      option.hidden = !available;
+      if (!available && option.selected) rateSelect.value = '';
+    }
+    if (custom) {
+      const enabled = rateSelect.value === 'custom';
+      custom.hidden = !enabled;
+      custom.querySelectorAll('input').forEach(input => { input.disabled = !enabled; input.required = enabled; });
+    }
+  }
+  client.addEventListener('change', updateRates);
+  rateSelect.addEventListener('change', updateRates);
+  updateRates();
+});
+document.querySelectorAll('[data-copy-description]').forEach(button => {
+  button.addEventListener('click', async () => {
+    const textarea = document.getElementById(button.dataset.copyDescription);
+    const status = button.parentElement.querySelector('[data-copy-status]');
+    try { await navigator.clipboard.writeText(textarea.value); status.textContent = ' Description copied.'; }
+    catch { textarea.focus(); textarea.select(); status.textContent = ' Select and copy the description.'; }
+  });
+});

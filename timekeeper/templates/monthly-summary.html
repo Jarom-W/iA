@@ -1,0 +1,15 @@
+{% extends 'base.html' %}{% block content %}
+<div class="page-heading"><div><h1>Monthly billing summary</h1><p class="intro">Hours and descriptions to use as line items in BlueVine.</p></div><button class="button outline no-print" type="button" data-print>Print summary</button></div>
+<section class="panel"><form method="get" class="report-filter no-print"><label>Month<input type="month" name="month" required value="{{ month.strftime('%Y-%m') }}"></label><label>Client<select name="client"><option value="">All clients</option>{% for client in clients %}<option value="{{ client.id }}" {% if selected==client.id %}selected{% endif %}>{{ client.name }}</option>{% endfor %}</select></label><button class="button">Show month</button></form>
+<h2>{{ month.strftime('%B %Y') }}</h2><p class="mono">{{ '%.6f'|format(total_seconds/3600) }} hours · {{ total_amount|money }}</p>
+<div class="actions no-print"><a class="button outline" href="{{ url_for('monthly_summary',month=month.strftime('%Y-%m'),client=selected or '',format='csv') }}">Download line items CSV ↓</a><a class="button outline" href="{{ url_for('report',client=selected or '',format='pdf',**{'from':start_text,'to':end_text}) }}">Detailed work log PDF ↓</a></div>
+<p class="hint">One line per client and hourly rate. Includes completed work within this month in {{ timezone_name }}.</p>
+<details class="billing-details no-print"><summary>How totals are calculated</summary><p class="hint">Rate names at the same dollar price are combined. Amounts are rounded once per grouped line using exact elapsed time. Detailed session reports round each session, so penny differences are possible. Quantities use six decimal hours; check the supported precision when entering them in BlueVine.</p></details>
+{% if pending %}<p class="notice">{{ pending }} running or unfinished session(s) overlap this month and are excluded. <a href="{{ url_for('work_log') }}">Finish the work log →</a></p>{% endif %}</section>
+{% for group in groups %}<section class="panel"><div class="section-top"><div><h2>{{ group.name }}</h2><p>{{ group.labels }} · {{ group.rate_cents|money }}/hr</p></div><strong>{{ group.amount|money }}</strong></div>
+<p class="mono">Quantity: {{ '%.6f'|format(group.seconds/3600) }} hours · {{ group.entries|length }} {{ 'session' if group.entries|length==1 else 'sessions' }}</p>
+<label>Line-item description<textarea id="billing-description-{{ loop.index }}" rows="6" readonly>{{ group.description }}</textarea></label>
+<button type="button" class="button outline small no-print" data-copy-description="billing-description-{{ loop.index }}">Copy description</button><span role="status" data-copy-status></span>
+<details class="billing-details"><summary>Review included sessions</summary>{{ entry_table(group.entries) }}</details>
+</section>{% else %}<section class="panel"><p>No completed work for this month and client.</p></section>{% endfor %}
+{% endblock %}

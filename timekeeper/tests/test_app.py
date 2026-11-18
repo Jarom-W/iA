@@ -267,6 +267,115 @@ class WorkspaceTests(unittest.TestCase):
         data.update(overrides)
         return self.post('/events/new', data)
 
+    def manual(self, client, **changes):
+        page = self.get('/entries/new?client=' + client)
+        ticket = re.search(r'name="creation_token" value="([^"]+)"', page.text)[1]
+        data = dict(client_id=client, rate_id='default:'+client, started_at='2026-10-15T09:00',
+                    hours='1.5',summary='Planning meeting',deliverables='Discussed roadmap',
+                    private_notes='PRIVATE-CONTENT',creation_token=ticket)
+        data.update(changes)
+        return self.post('/entries/new',data),data
+
+    def test_manual_time_and_monthly_line_items(self):
+        self.login(); client=self.make_client(rate='50')
+        result,data=self.manual(client)
+        self.assertEqual(result.status_code,302)
+        row=self.query('SELECT * FROM entries')[0]
+        self.assertEqual(row['ended_at']-row['started_at'],5400)
+        self.assertEqual(row['rate_cents'],5000);self.assertEqual(row['source'],'manual')
+        self.assertEqual(self.post('/entries/new',data).status_code,302)
+        self.assertEqual(len(self.query('SELECT * FROM entries')),1)
+        for value in ('75','125'):
+            self.assertEqual(self.manual(client,rate_id='custom',custom_label='Client work',custom_rate=value,hours='2')[0].status_code,302)
+        response=self.get('/monthly-summary?month=2026-10&client='+client+'&format=csv')
+        rows=list(csv.reader(io.StringIO(response.data.decode('utf-8-sig'))))
+        self.assertEqual(len(rows),4)
+        self.assertEqual([r[3:6] for r in rows[1:]],[['1.500000','50.00','75.00'],['2.000000','75.00','150.00'],['2.000000','125.00','250.00']])
+        self.assertIn('Discussed roadmap',rows[1][6]);self.assertNotIn('PRIVATE-CONTENT',response.text)
+        self.assertIn('USD 475.00',self.get('/monthly-summary?month=2026-10').text)
+        self.assertIn('Planning meeting',self.get('/calendar?month=2026-10&client='+client).text)
+
+    def test_named_rate_selection_snapshot_archive_and_cross_client(self):
+        self.login();client=self.make_client(rate='50');other=self.make_client('Other')
+        self.assertEqual(self.post(f'/clients/{client}/rates/new',{'label':'Internal','rate':'50'}).status_code,302)
+        rate_id=self.query('SELECT id FROM client_rates')[0][0]
+        self.post('/clock-in',{'client_id':client})
+        self.assertIsNone(self.get('/api/timer').json['entry'])
+        self.post('/clock-in',{'client_id':other,'rate_id':rate_id})
+        self.assertIsNone(self.get('/api/timer').json['entry'])
+        self.post('/clock-in',{'client_id':client,'rate_id':rate_id})
+        entry=self.get('/api/timer').json['entry'];self.assertEqual(entry['rate_cents'],5000)
+        self.assertEqual(entry['rate_label'],'Internal')
+        self.post(f'/clients/{client}/rates/{rate_id}',{'label':'New internal','rate':'60','revision':'0','archived':'1'})
+        self.assertEqual(self.get('/api/timer').json['entry']['rate_cents'],5000)
+        self.assertEqual(self.manual(client,rate_id=rate_id)[0].status_code,200)
+        self.assertEqual(len(self.query("SELECT * FROM entries WHERE source='manual'")),0)
+        self.assertEqual(self.post(f'/clients/{client}/rates/{rate_id}',{'label':'Stale','rate':'80','revision':'0'}).status_code,409)
+
+    def test_edit_hours_rate_and_stale_revision(self):
+        self.login();client=self.make_client();self.manual(client)
+        entry=self.query('SELECT * FROM entries')[0]
+        data=dict(client_id=client,rate_id='custom',custom_label='External',custom_rate='125',
+            started_at='2026-10-16T10:00',hours='2.25',summary='Changed',deliverables='Completed work',revision='0')
+        self.assertEqual(self.post(f"/entries/{entry['id']}/edit",data).status_code,302)
+        updated=self.query('SELECT * FROM entries')[0]
+        self.assertEqual(updated['rate_cents'],12500);self.assertEqual(updated['ended_at']-updated['started_at'],8100)
+        self.assertEqual(self.post(f"/entries/{entry['id']}/edit",data).status_code,409)
+        # Existing journal edits also see the changed revision.
+        self.assertEqual(self.post('/journal/'+entry['id'],dict(summary='Stale',deliverables='Old',revision='0')).status_code,409)
+
+    def test_manual_invalid_duration_dates_and_ticket(self):
+        self.login();client=self.make_client()
+        for hours in ['NaN','Infinity','0','-1','745','nope','0.00000001']:
+            self.assertEqual(self.manual(client,hours=hours)[0].status_code,200)
+        for started in ['2090-01-01T09:00','2026-03-08T02:30','2026-11-01T01:30']:
+            self.assertEqual(self.manual(client,started_at=started)[0].status_code,200)
+        self.assertEqual(self.manual(client,creation_token='invalid')[0].status_code,400)
+        self.assertEqual(len(self.query('SELECT * FROM entries')),0)
+
+    def test_month_boundaries_same_price_labels_and_pending(self):
+        self.login();client=self.make_client(rate='50')
+        self.manual(client,started_at='2026-09-30T23:00',hours='2',summary='Spans month')
+        self.manual(client,started_at='2026-10-02T09:00',hours='1',rate_id='custom',custom_label='Other label',custom_rate='50')
+        self.manual(client,started_at='2026-10-31T23:00',hours='2')
+        csv_rows=list(csv.reader(io.StringIO(self.get('/monthly-summary?month=2026-10&format=csv').data.decode('utf-8-sig'))))
+        self.assertEqual(len(csv_rows),2)
+        self.assertEqual(csv_rows[1][3:6],['3.000000','50.00','150.00'])
+        self.assertIn('Default, Other label',csv_rows[1][2])
+        self.assertIn('Only the portion within this month',csv_rows[1][6])
+        self.start(client,datetime(2026,10,15,10,tzinfo=ZoneInfo('America/Denver')).timestamp())
+        self.assertIn('1 running or unfinished',self.get('/monthly-summary?month=2026-10').text)
+        self.assertEqual(self.get('/monthly-summary?month=invalid').status_code,400)
+
+    def test_calendar_splits_elapsed_hours_at_dst_day_boundaries(self):
+        self.login();client=self.make_client()
+        self.manual(client,started_at='2026-10-31T23:00',hours='4')
+        page=self.get('/calendar?month=2026-11').text
+        self.assertIn('1.00h logged',page);self.assertIn('3.00h logged',page)
+
+    def test_edit_preserves_ambiguous_dst_timestamp_and_exact_timer_seconds(self):
+        self.login();client=self.make_client()
+        start=int(datetime(2026,11,1,1,30,15,tzinfo=ZoneInfo('America/Denver'),fold=1).timestamp())
+        entry=self.start(client,start)
+        self.assertEqual(self.stop(entry,start+5401).status_code,302)
+        data=dict(client_id=client,rate_id='keep',started_at='2026-11-01T01:30',hours=f"{5401/3600:.6f}",summary='Retained time',deliverables='Done',revision='0')
+        self.assertEqual(self.post('/entries/'+entry+'/edit',data).status_code,302)
+        row=self.query('SELECT * FROM entries')[0]
+        self.assertEqual(row['started_at'],start)
+        self.assertEqual(row['ended_at']-row['started_at'],5401)
+
+    def test_schema_migration_retains_existing_time(self):
+        self.login();client=self.make_client();self.manual(client)
+        # Reproduce an existing installation before the additive columns were added.
+        self.query('ALTER TABLE entries DROP COLUMN rate_label')
+        self.query('ALTER TABLE entries DROP COLUMN source')
+        create_app(self.config)
+        create_app(self.config)
+        row=self.query('SELECT * FROM entries')[0]
+        self.assertEqual(row['rate_cents'],15000)
+        self.assertEqual(row['ended_at']-row['started_at'],5400)
+        self.assertEqual(row['rate_label'],'Default')
+
     def test_calendar_create_edit_delete_and_multiday_off(self):
         self.login()
         self.assertEqual(self.make_event().status_code, 302)
