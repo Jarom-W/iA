@@ -26,3 +26,9 @@ CREATE TABLE IF NOT EXISTS events (
 );
 CREATE INDEX IF NOT EXISTS events_start ON events(starts_at);
 CREATE TABLE IF NOT EXISTS login_attempts (created_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS client_rates (
+ id TEXT PRIMARY KEY, client_id TEXT NOT NULL REFERENCES clients(id),
+ label TEXT NOT NULL, rate_cents INTEGER NOT NULL CHECK(rate_cents>=0),
+ archived INTEGER NOT NULL DEFAULT 0, revision INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS client_rates_client ON client_rates(client_id);

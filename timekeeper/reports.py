@@ -73,7 +73,7 @@ def pdf_report(entries, zone, currency, start_text='', end_text='', client_name=
                 last_day = day
             start = datetime.fromtimestamp(entry['started_at'], tz).strftime('%Y-%m-%d %H:%M:%S %Z')
             end = datetime.fromtimestamp(entry['ended_at'], tz).strftime('%Y-%m-%d %H:%M:%S %Z')
-            story.extend([p(entry['summary'], subheading), p(f"{start} to {end}\n{elapsed(entry['seconds'])} | {amount(entry['rate_cents'])}/hour | {amount(entry['amount'])} estimated\nSession reference: {entry['id']}", small)])
+            story.extend([p(entry['summary'], subheading), p(f"{start} to {end}\n{elapsed(entry['seconds'])} | {entry.get('rate_label', 'Default')} · {amount(entry['rate_cents'])}/hour | {amount(entry['amount'])} estimated\nSession reference: {entry['id']}", small)])
             if entry.get('partial'):
                 story.append(p('Partial session: only the time overlapping the selected period is counted.', small))
             story.extend([p('Work completed & deliverables', label), p(entry['deliverables'])])

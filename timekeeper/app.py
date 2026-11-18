@@ -15,6 +15,8 @@ import time
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
+from itsdangerous import URLSafeTimedSerializer, BadSignature
+
 from flask import Flask, abort, flash, g, jsonify, redirect, render_template, request, send_file, session, url_for
 from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
@@ -59,6 +61,14 @@ def create_app(config=None):
     database.parent.mkdir(parents=True, exist_ok=True)
     with closing(sqlite3.connect(database)) as conn:
         conn.executescript(Path(__file__).with_name('schema.sql').read_text())
+        # Additive, transactional migration; historical rate amounts remain untouched.
+        with conn:
+            conn.execute('BEGIN IMMEDIATE')
+            columns = {row[1] for row in conn.execute('PRAGMA table_info(entries)')}
+            if 'rate_label' not in columns:
+                conn.execute("ALTER TABLE entries ADD COLUMN rate_label TEXT NOT NULL DEFAULT 'Default'")
+            if 'source' not in columns:
+                conn.execute("ALTER TABLE entries ADD COLUMN source TEXT NOT NULL DEFAULT 'timer'")
     database.chmod(0o600)
 
     def db():
@@ -120,7 +130,7 @@ def create_app(config=None):
             if request.endpoint == 'upload_document':
                 permissions.append('time:documents:write')
             # Edit forms contain private data too; require edit permission before rendering.
-            if request.endpoint in ('client_form', 'event_form', 'journal'):
+            if request.endpoint in ('client_form', 'event_form', 'journal', 'entry_form', 'rate_form'):
                 permissions.append('time:write')
             return auth.require(*permissions)
         if not auth and request.endpoint not in ('login', 'static') and not session.get('owner'):
@@ -232,7 +242,7 @@ def create_app(config=None):
         week_start = current.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=current.weekday())
         rows = entry_rows(start=int(week_start.timestamp()))
         return render_template('dashboard.html', title='Overview', active=open_entry(),
-            clients=db().execute('SELECT * FROM clients WHERE archived=0 ORDER BY name').fetchall(),
+            clients=db().execute('SELECT * FROM clients WHERE archived=0 ORDER BY name').fetchall(), rate_options=rate_options(),
             week_seconds=sum(row['seconds'] for row in rows), week_amount=sum(row['amount'] for row in rows),
             recent=entry_rows()[:5], current=current,
             upcoming=db().execute('SELECT ev.*, c.name FROM events ev LEFT JOIN clients c ON c.id=ev.client_id WHERE ev.ends_at>? ORDER BY ev.starts_at LIMIT 4', (now(),)).fetchall())
@@ -250,7 +260,12 @@ def create_app(config=None):
                 flash('Finish your current session before starting another.', 'error')
                 return redirect(url_for('journal', entry_id=active['id']) if active['status'] == 'draft' else url_for('dashboard'))
             client = one('SELECT * FROM clients WHERE id=? AND archived=0', (request.form.get('client_id', ''),))
-            db().execute("INSERT INTO entries(id,client_id,rate_cents,started_at,status) VALUES(?,?,?,?,'running')", (secrets.token_hex(12), client['id'], client['rate_cents'], now()))
+            try:
+                cents, label = chosen_rate(client)
+            except ValueError as exc:
+                flash(str(exc), 'error')
+                return redirect(url_for('dashboard'))
+            db().execute("INSERT INTO entries(id,client_id,rate_cents,rate_label,started_at,status) VALUES(?,?,?,?,?,'running')", (secrets.token_hex(12), client['id'], cents, label, now()))
         return redirect(url_for('dashboard'))
 
     @app.post('/clock-out/<entry_id>')
@@ -283,6 +298,102 @@ def create_app(config=None):
                 error = str(exc)
         return render_template('journal.html', title='Session wrap-up', entry=entry, error=error,
             seconds=entry['ended_at'] - entry['started_at'], amount=earnings(entry['ended_at'] - entry['started_at'], entry['rate_cents']))
+
+    def rate_options():
+        options = [dict(id='default:' + c['id'], client_id=c['id'], label='Default', rate_cents=c['rate_cents'])
+                   for c in db().execute('SELECT id,rate_cents FROM clients')]
+        options.extend(dict(r) for r in db().execute('SELECT * FROM client_rates WHERE archived=0 ORDER BY label'))
+        return options
+
+    def chosen_rate(client, entry=None, custom=False):
+        choice = request.form.get('rate_id', '')
+        if choice == 'keep' and entry and entry['client_id'] == client['id']:
+            return entry['rate_cents'], entry['rate_label']
+        if choice == 'custom' and custom:
+            return rate(field('custom_rate', 20, True)), field('custom_label', 100, True)
+        if choice == 'default:' + client['id'] or (not choice and not db().execute('SELECT 1 FROM client_rates WHERE client_id=? AND archived=0', (client['id'],)).fetchone()):
+            return client['rate_cents'], 'Default'
+        selected = db().execute('SELECT * FROM client_rates WHERE id=? AND client_id=? AND archived=0', (choice, client['id'])).fetchone()
+        if not selected:
+            raise ValueError('Choose a billing rate for this client.')
+        return selected['rate_cents'], selected['label']
+
+    @app.route('/clients/<client_id>/rates/new', methods=['GET', 'POST'])
+    @app.route('/clients/<client_id>/rates/<rate_id>', methods=['GET', 'POST'])
+    def rate_form(client_id, rate_id=None):
+        client = one('SELECT * FROM clients WHERE id=?', (client_id,))
+        item = one('SELECT * FROM client_rates WHERE id=? AND client_id=?', (rate_id, client_id)) if rate_id else None
+        error = None
+        if request.method == 'POST':
+            try:
+                label, cents = field('label', 100, True), rate(field('rate', 20, True))
+                archived = int(request.form.get('archived') == '1')
+                with db():
+                    if item:
+                        result = db().execute('UPDATE client_rates SET label=?,rate_cents=?,archived=?,revision=revision+1 WHERE id=? AND revision=?',
+                            (label,cents,archived,rate_id,request.form.get('revision','-1')))
+                        if result.rowcount != 1: abort(409, 'This rate changed in another tab. Reload before editing.')
+                    else:
+                        db().execute('INSERT INTO client_rates(id,client_id,label,rate_cents) VALUES(?,?,?,?)', (secrets.token_hex(12),client_id,label,cents))
+                flash('Rate saved. Existing sessions keep their recorded rate.', 'success')
+                return redirect(url_for('client_detail',client_id=client_id))
+            except ValueError as exc: error = str(exc)
+        return render_template('rate-form.html', title='Edit billing rate' if item else 'Add billing rate', client=client, item=item, error=error)
+
+    entry_signer = URLSafeTimedSerializer(app.secret_key, salt='manual-time-entry')
+
+    @app.route('/entries/new', methods=['GET', 'POST'])
+    @app.route('/entries/<entry_id>/edit', methods=['GET', 'POST'])
+    def entry_form(entry_id=None):
+        entry = one('SELECT * FROM entries WHERE id=?', (entry_id,)) if entry_id else None
+        if entry and entry['status'] == 'running':
+            flash('Clock out before changing the session time or rate.', 'error')
+            return redirect(url_for('dashboard'))
+        error = None
+        ticket = request.form.get('creation_token', '') if request.method == 'POST' else entry_signer.dumps({'id':secrets.token_hex(12),'csrf':csrf()})
+        if request.method == 'POST':
+            try:
+                client = one('SELECT * FROM clients WHERE id=?', (field('client_id',40,True),))
+                if client['archived'] and (not entry or client['id'] != entry['client_id']):
+                    raise ValueError('Restore this client before adding time.')
+                cents, label = chosen_rate(client, entry, custom=True)
+                start_text = field('started_at',30,True)
+                start = entry['started_at'] if entry and start_text == local(entry['started_at']).strftime('%Y-%m-%dT%H:%M') else parse_local(start_text)
+                # Preserve exact timer seconds when its displayed hours are unchanged.
+                hours_text = field('hours',30,True)
+                hours = Decimal(hours_text)
+                if not hours.is_finite() or hours <= 0 or hours > 744:
+                    raise ValueError('Enter hours greater than zero and no more than 744.')
+                seconds = int((hours * 3600).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+                if entry and hours_text == f"{(entry['ended_at']-entry['started_at'])/3600:.6f}":
+                    seconds = entry['ended_at']-entry['started_at']
+                if seconds < 1 or start + seconds > now():
+                    raise ValueError('Recorded time must end in the past and last at least one second.')
+                summary = field('summary',2000,True)
+                deliverables = field('deliverables',6000,True)
+                next_steps, private_notes = field('next_steps',3000), field('private_notes',6000)
+                values = (client['id'],cents,label,start,start+seconds,summary,deliverables,next_steps,private_notes)
+                with db():
+                    if entry:
+                        changed = db().execute("UPDATE entries SET client_id=?,rate_cents=?,rate_label=?,started_at=?,ended_at=?,summary=?,deliverables=?,next_steps=?,private_notes=?,status='complete',revision=revision+1 WHERE id=? AND revision=? AND status!='running'", values+(entry_id,request.form.get('revision','-1')))
+                        if changed.rowcount != 1: abort(409,'This entry changed in another tab. Reload before editing.')
+                    else:
+                        try:
+                            signed = entry_signer.loads(ticket,max_age=86400)
+                            if signed['csrf'] != csrf(): raise ValueError()
+                        except (BadSignature,KeyError,ValueError):
+                            abort(400,'This entry form expired. Open Add time again.')
+                        entry_id = signed['id']
+                        db().execute("INSERT INTO entries(client_id,rate_cents,rate_label,started_at,ended_at,summary,deliverables,next_steps,private_notes,id,status,source) VALUES(?,?,?,?,?,?,?,?,?,?,'complete','manual') ON CONFLICT(id) DO NOTHING", values+(entry_id,))
+                flash('Time entry saved.', 'success')
+                return redirect(url_for('calendar_view',month=local(start).strftime('%Y-%m'),client=client['id']))
+            except (ValueError, InvalidOperation) as exc:
+                error = str(exc) if not isinstance(exc,InvalidOperation) else 'Enter a valid number of hours.'
+        default_date = request.args.get('date',local(now()).date().isoformat())
+        if not re.fullmatch(r'\d{4}-\d{2}-\d{2}',default_date): default_date=local(now()).date().isoformat()
+        return render_template('entry-form.html',title='Edit time entry' if entry else 'Add time',entry=entry,error=error,creation_token=ticket,
+            selected=request.args.get('client',''),default_start=default_date+'T09:00', rate_options=rate_options(),
+            clients=db().execute('SELECT * FROM clients ORDER BY archived,name').fetchall())
 
     @app.get('/clients')
     def clients():
@@ -320,6 +431,7 @@ def create_app(config=None):
         rows = entry_rows(client_id)
         return render_template('client.html', title=client['name'], client=client, entries=rows,
             total_seconds=sum(row['seconds'] for row in rows), total_amount=sum(row['amount'] for row in rows),
+            rates=db().execute('SELECT * FROM client_rates WHERE client_id=? ORDER BY archived,label', (client_id,)).fetchall(),
             documents=db().execute('SELECT id,name,size,created_at FROM documents WHERE client_id=? ORDER BY created_at DESC', (client_id,)).fetchall())
 
     @app.post('/clients/<client_id>/archive')
@@ -397,18 +509,62 @@ def create_app(config=None):
         if request.args.get('format') == 'csv':
             output = io.StringIO(newline='')
             writer = csv.writer(output)
-            writer.writerow(['Client', 'Start (' + app.config['TIMEZONE'] + ')', 'End', 'Hours', 'Hourly rate (' + app.config['CURRENCY'] + ')', 'Estimated earnings', 'Summary', 'Deliverables', 'Next steps', 'Session reference', 'Partial session'])
+            writer.writerow(['Client', 'Start (' + app.config['TIMEZONE'] + ')', 'End', 'Hours', 'Hourly rate (' + app.config['CURRENCY'] + ')', 'Estimated earnings', 'Summary', 'Deliverables', 'Next steps', 'Session reference', 'Partial session', 'Rate name'])
             def safe(value):
                 value = str(value)
                 return "'" + value if value.lstrip().startswith(('=', '+', '-', '@')) or value.startswith(('\t', '\r', '\n')) else value
             for group in groups_for(rows):
                 for row in group['entries']:
-                    writer.writerow([safe(row['name']), local(row['started_at']).isoformat(), local(row['ended_at']).isoformat(), f"{row['seconds']/3600:.4f}", f"{row['rate_cents']/100:.2f}", f"{row['amount']/100:.2f}", safe(row['summary']), safe(row['deliverables']), safe(row['next_steps']), row['id'], 'yes' if row['partial'] else 'no'])
+                    writer.writerow([safe(row['name']), local(row['started_at']).isoformat(), local(row['ended_at']).isoformat(), f"{row['seconds']/3600:.4f}", f"{row['rate_cents']/100:.2f}", f"{row['amount']/100:.2f}", safe(row['summary']), safe(row['deliverables']), safe(row['next_steps']), row['id'], 'yes' if row['partial'] else 'no', safe(row['rate_label'])])
                 writer.writerow([safe(group['name']) + ' subtotal', '', '', f"{group['seconds']/3600:.4f}", '', f"{group['amount']/100:.2f}"])
             writer.writerow(['Grand total', '', '', f"{sum(r['seconds'] for r in rows)/3600:.4f}", '', f"{sum(r['amount'] for r in rows)/100:.2f}"])
             return send_file(io.BytesIO(output.getvalue().encode('utf-8-sig')), mimetype='text/csv', as_attachment=True, download_name='client-work-report.csv')
         return render_template('report.html', title='Client work report', client=client, selected=selected, groups=groups_for(rows), entries=rows,
             total_seconds=sum(row['seconds'] for row in rows), total_amount=sum(row['amount'] for row in rows), start_text=start_text, end_text=end_text)
+
+    @app.get('/monthly-summary')
+    def monthly_summary():
+        current = local(now())
+        try:
+            month = datetime.strptime(request.args.get('month',current.strftime('%Y-%m')), '%Y-%m').replace(tzinfo=tz)
+            if not 2001 <= month.year <= 2099: raise ValueError()
+        except ValueError: abort(400,'Choose a month between 2001 and 2099.')
+        following = (month.replace(day=28)+timedelta(days=4)).replace(day=1)
+        selected = request.args.get('client') or None
+        if selected: one('SELECT id FROM clients WHERE id=?',(selected,))
+        start, end = int(month.timestamp()), int(following.timestamp())
+        rows = entry_rows(selected,start,end,overlap=True)
+        grouped = {}
+        for row in sorted(rows,key=lambda r:(r['name'].casefold(),r['client_id'],r['rate_cents'],r['started_at'])):
+            key = (row['client_id'],row['rate_cents'])
+            group = grouped.setdefault(key,dict(name=row['name'],client_id=row['client_id'],rate_cents=row['rate_cents'],seconds=0,labels=set(),entries=[]))
+            group['seconds'] += row['seconds']; group['labels'].add(row['rate_label']); group['entries'].append(row)
+        groups = list(grouped.values())
+        for group in groups:
+            group['amount'] = earnings(group['seconds'],group['rate_cents'])
+            group['labels'] = ', '.join(sorted(group['labels']))
+            group['description'] = '\n\n'.join(
+                local(row['started_at']).strftime('%b %d')+' · '+row['rate_label']+' · '+row['summary']+'\n'+row['deliverables']
+                + ('\nNext steps: '+row['next_steps'] if row['next_steps'] else '')
+                + ('\nOnly the portion within this month is included.' if row['partial'] else '')
+                for row in group['entries'])
+        pending_sql = "SELECT COUNT(*) FROM entries WHERE status!='complete' AND started_at<? AND COALESCE(ended_at,?)>?"
+        pending_params = [end,now(),start]
+        if selected: pending_sql += ' AND client_id=?'; pending_params.append(selected)
+        pending = db().execute(pending_sql,pending_params).fetchone()[0]
+        if request.args.get('format') == 'csv':
+            output = io.StringIO(newline=''); writer=csv.writer(output)
+            def safe(value):
+                value=str(value)
+                return "'"+value if value.lstrip().startswith(('=','+','-','@')) or value.startswith(('\t','\r','\n')) else value
+            writer.writerow(['Month','Client','Rate labels','Hours','Hourly rate ('+app.config['CURRENCY']+')','Amount ('+app.config['CURRENCY']+')','Description'])
+            for group in groups:
+                writer.writerow([month.strftime('%Y-%m'),safe(group['name']),safe(group['labels']),f"{group['seconds']/3600:.6f}",f"{group['rate_cents']/100:.2f}",f"{group['amount']/100:.2f}",safe(group['description'])])
+            return send_file(io.BytesIO(output.getvalue().encode('utf-8-sig')),mimetype='text/csv',as_attachment=True,download_name='monthly-time-'+month.strftime('%Y-%m')+'.csv')
+        return render_template('monthly-summary.html',title='Monthly billing summary',month=month,selected=selected,groups=groups,pending=pending,
+            total_seconds=sum(g['seconds'] for g in groups),total_amount=sum(g['amount'] for g in groups),
+            clients=db().execute('SELECT id,name FROM clients ORDER BY name').fetchall(),
+            start_text=month.date().isoformat(),end_text=(following-timedelta(days=1)).date().isoformat())
 
     @app.get('/calendar')
     def calendar_view():
@@ -423,9 +579,18 @@ def create_app(config=None):
         begin = datetime.combine(dates[0], datetime.min.time(), tz)
         end = datetime.combine(dates[-1] + timedelta(days=1), datetime.min.time(), tz)
         events = db().execute('SELECT ev.*,c.name FROM events ev LEFT JOIN clients c ON c.id=ev.client_id WHERE ev.starts_at<? AND ev.ends_at>? ORDER BY ev.starts_at', (int(end.timestamp()), int(begin.timestamp()))).fetchall()
-        days = [dict(date=day, events=[ev for ev in events if local(ev['starts_at']).date() <= day <= local(ev['ends_at'] - 1).date()]) for day in dates]
+        selected = request.args.get('client') or None
+        if selected: one('SELECT id FROM clients WHERE id=?', (selected,))
+        if selected: events = [event for event in events if event['client_id'] == selected]
+        rows = entry_rows(selected, int(begin.timestamp()), int(end.timestamp()), overlap=True)
+        days = []
+        for day in dates:
+            day_start = int(datetime.combine(day,datetime.min.time(),tz).timestamp())
+            day_end = int(datetime.combine(day+timedelta(days=1),datetime.min.time(),tz).timestamp())
+            work = [dict(row, day_seconds=min(row['ended_at'],day_end)-max(row['started_at'],day_start)) for row in rows if row['started_at']<day_end and row['ended_at']>day_start]
+            days.append(dict(date=day,entries=work,seconds=sum(row['day_seconds'] for row in work),events=[ev for ev in events if local(ev['starts_at']).date() <= day <= local(ev['ends_at'] - 1).date()]))
         next_month = (month.replace(day=28) + timedelta(days=4)).replace(day=1)
-        return render_template('calendar.html', title='Calendar', month=month, days=days, events=events, today=current.date(),
+        return render_template('calendar.html', title='Calendar', month=month, days=days, events=events, today=current.date(), selected=selected, entries=rows, clients=db().execute('SELECT id,name FROM clients ORDER BY name').fetchall(),
             previous=(month - timedelta(days=1)).strftime('%Y-%m'), following=next_month.strftime('%Y-%m'))
 
     @app.route('/events/new', methods=['GET', 'POST'])
