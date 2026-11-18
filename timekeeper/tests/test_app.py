@@ -357,7 +357,7 @@ class WorkspaceTests(unittest.TestCase):
         self.login();client=self.make_client()
         start=int(datetime(2026,11,1,1,30,15,tzinfo=ZoneInfo('America/Denver'),fold=1).timestamp())
         entry=self.start(client,start)
-        with patch('app.time.time', return_value=start+5401): self.post('/clock-out/'+entry)
+        self.assertEqual(self.stop(entry,start+5401).status_code,302)
         data=dict(client_id=client,rate_id='keep',started_at='2026-11-01T01:30',hours=f"{5401/3600:.6f}",summary='Retained time',deliverables='Done',revision='0')
         self.assertEqual(self.post('/entries/'+entry+'/edit',data).status_code,302)
         row=self.query('SELECT * FROM entries')[0]
